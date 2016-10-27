@@ -1,0 +1,22 @@
+https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/discuss
+
+
+Battery (3.7v)
+
+
+reset causes:
+    0:
+    1: normal boot
+    2: reset pin
+    3: software reset
+    4: watchdog reset
+
+boot device:
+    0:
+    1: ram
+    3: flash
+
+
+https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/all
+https://cdn.sparkfun.com/datasheets/Wireless/WiFi/ESP8266ThingV1.pdf
+https://cdn.sparkfun.com/datasheets/Wireless/WiFi/SparkFun_ESP8266_Thing.pdf

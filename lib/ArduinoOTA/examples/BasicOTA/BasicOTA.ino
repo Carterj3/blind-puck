@@ -3,16 +3,12 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-const char* ssid = "compile;
-const char* password = "error;
+const char* ssid = "..........";
+const char* password = "..........";
 
 void setup() {
   Serial.begin(115200);
   Serial.println("Booting");
-
-  // initialize LED digital pin as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
-
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
@@ -22,7 +18,7 @@ void setup() {
   }
 
   // Port defaults to 8266
-  ArduinoOTA.setPort(8266);
+  // ArduinoOTA.setPort(8266);
 
   // Hostname defaults to esp8266-[ChipID]
   // ArduinoOTA.setHostname("myesp8266");
@@ -33,8 +29,16 @@ void setup() {
   // Password can be set with it's md5 value as well
   // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
   // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
+
   ArduinoOTA.onStart([]() {
-    Serial.println("Start updating ");
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH)
+      type = "sketch";
+    else // U_SPIFFS
+      type = "filesystem";
+
+    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+    Serial.println("Start updating " + type);
   });
   ArduinoOTA.onEnd([]() {
     Serial.println("\nEnd");
@@ -58,13 +62,4 @@ void setup() {
 
 void loop() {
   ArduinoOTA.handle();
-
-      // turn the LED on (HIGH is the voltage level)
-    digitalWrite(LED_BUILTIN, HIGH);
-    // wait for a second
-    delay(1000);
-    // turn the LED off by making the voltage LOW
-    digitalWrite(LED_BUILTIN, LOW);
-     // wait for a second
-    delay(1000);
 }
