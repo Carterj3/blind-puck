@@ -19,8 +19,9 @@ const char WiFiAPPSK[] = "sparkfun";
 // Pin Definitions //
 /////////////////////
 
-// GPIO for speaker
+const int BOARD_LED = 5; // 5 -> ESP8266 #5
 
+// GPIO for speaker
 const int SPEAKER_1 = 0; // 0 -> ESP8266 #0
 const int SPEAKER_2 = 4; // 4 -> ESP8266 #4
 
@@ -43,7 +44,7 @@ void setup()
   setupWiFi();
 
   server.on("/version", [](){
-    server.send(200, "application/json", "0.1.1.12");
+    server.send(200, "application/json", "0.1.1.13");
   });
 
   server.on("/adc", [](){
@@ -134,8 +135,13 @@ void setup()
 
 void loop()
 {
-  server.handleClient();
 
+  digitalWrite(BOARD_LED, HIGH);
+  server.handleClient(); // This is a blocking call
+  delay(1);
+
+  digitalWrite(BOARD_LED, LOW);
+  server.handleClient();
   delay(1);
 }
 
@@ -167,6 +173,7 @@ void initHardware()
 
   pinMode(SPEAKER_1, OUTPUT);
   pinMode(SPEAKER_2, OUTPUT);
+  pinMode(BOARD_LED, OUTPUT);
 
   // Don't need to set ANALOG_PIN as input
 
