@@ -1,70 +1,161 @@
+// WiFi
 #include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+
+// I2C
+#include <Wire.h>
+// Accel
+#include <LIS331.h>
+
+// OTA
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-const char* ssid = "compile;
-const char* password = "error;
+const char WiFiAPPSK[] = "sparkfun";
 
-void setup() {
-  Serial.begin(115200);
-  Serial.println("Booting");
+/////////////////////
+// Pin Definitions //
+/////////////////////
 
-  // initialize LED digital pin as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
+// GPIO for speaker
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    Serial.println("Connection Failed! Rebooting...");
-    delay(5000);
-    ESP.restart();
-  }
+const int SPEAKER_1 = 0; // 0 -> ESP8266 #0
+const int SPEAKER_2 = 4; // 4 -> ESP8266 #4
 
-  // Port defaults to 8266
-  ArduinoOTA.setPort(8266);
+// I2C for accel
+LIS331 lis;
 
-  // Hostname defaults to esp8266-[ChipID]
-  // ArduinoOTA.setHostname("myesp8266");
+// ADC for battery voltage
+const int ANALOG_PIN = A0;
 
-  // No authentication by default
-  // ArduinoOTA.setPassword("admin");
+ESP8266WebServer server(80);
 
-  // Password can be set with it's md5 value as well
-  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-  ArduinoOTA.onStart([]() {
-    Serial.println("Start updating ");
+int16_t x,y,z;
+
+void initHardware();
+void setupWiFi();
+
+void setup()
+{
+  initHardware();
+  setupWiFi();
+
+  server.on("/version", [](){
+    server.send(200, "application/json", "0.1.1.4");
   });
-  ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
+
+  server.on("/adc", [](){
+    int average = 0;
+    for(int i=1; i <= 50; i++){
+      average = (average*(i-1))/i + analogRead(ANALOG_PIN)/i;
+    }
+
+    server.send(200, "application/json", String(average));
   });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+
+  server.on("/accel", [](){
+
+    lis.getXValue(&x);
+    lis.getYValue(&y);
+    lis.getZValue(&z);
+
+    String response = "";
+    response += "{ x: "+String(x);
+    response += ", y: "+String(y);
+    response += ", z: "+String(z);
+    response += "}";
+
+    server.send(200, "application/json", response);
   });
-  ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+
+  server.on("/speaker", [](){
+
+    int frequency = 0;
+    int delay = 0;
+    int repeats = 0;
+
+    for(int i=0; i<server.args(); i++){
+      if(server.argName(i) == "delay"){
+        delay = server.arg(i).toInt();
+      }else if(server.argName(i) == "repeats"){
+        repeats = server.arg(i).toInt();
+      }else if(server.argName(i) == "frequency"){
+        frequency = server.arg(i).toInt();
+      }
+    }
+
+    // Make it go LOW-HIGH-LOW to make sound
+
+    // Starts LOW
+
+    for(int i=0;i<repeats;i++){
+      tone(SPEAKER_1, frequency);
+      tone(SPEAKER_2, frequency);
+
+      delayMicroseconds(delay);
+
+      noTone(SPEAKER_1);
+      noTone(SPEAKER_2);
+    }
+
+    String response = "";
+    response += "{ repeats: "+String(repeats);
+    response += ", delay: "+String(delay);
+    response += ", frequency: "+String(frequency);
+    response += "}";
+
+
+    server.send(200, "application/json", response);
   });
-  ArduinoOTA.begin();
-  Serial.println("Ready");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+
+  server.begin();
 }
 
-void loop() {
-  ArduinoOTA.handle();
+void loop()
+{
+  server.handleClient();
 
-      // turn the LED on (HIGH is the voltage level)
-    digitalWrite(LED_BUILTIN, HIGH);
-    // wait for a second
-    delay(1000);
-    // turn the LED off by making the voltage LOW
-    digitalWrite(LED_BUILTIN, LOW);
-     // wait for a second
-    delay(1000);
+  delay(1);
+}
+
+void setupWiFi()
+{
+  WiFi.mode(WIFI_AP);
+
+  // Do a little work to get a unique-ish name. Append the
+  // last two bytes of the MAC (HEX'd) to "Thing-":
+  uint8_t mac[WL_MAC_ADDR_LENGTH];
+  WiFi.softAPmacAddress(mac);
+  String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
+                 String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
+  macID.toUpperCase();
+  String AP_NameString = "ESP8266 Thing " + macID;
+
+  char AP_NameChar[AP_NameString.length() + 1];
+  memset(AP_NameChar, 0, AP_NameString.length() + 1);
+
+  for (int i=0; i<AP_NameString.length(); i++)
+    AP_NameChar[i] = AP_NameString.charAt(i);
+
+  WiFi.softAP(AP_NameChar, WiFiAPPSK);
+}
+
+void initHardware()
+{
+  Serial.begin(115200);
+
+  pinMode(SPEAKER_1, OUTPUT);
+  digitalWrite(SPEAKER_1, LOW);
+
+  pinMode(SPEAKER_2, OUTPUT);
+  digitalWrite(SPEAKER_2, LOW);
+
+  // Don't need to set ANALOG_PIN as input
+
+  lis.setPowerStatus(LR_POWER_NORM);
+  lis.setXEnable(true);
+  lis.setYEnable(true);
+  lis.setZEnable(true);
 }
