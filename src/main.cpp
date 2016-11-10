@@ -43,7 +43,7 @@ void setup()
   setupWiFi();
 
   server.on("/version", [](){
-    server.send(200, "application/json", "0.1.1.4");
+    server.send(200, "application/json", "0.1.1.7");
   });
 
   server.on("/adc", [](){
@@ -75,6 +75,7 @@ void setup()
     int frequency = 0;
     int delay = 0;
     int repeats = 0;
+    String useTone = "true";
 
     for(int i=0; i<server.args(); i++){
       if(server.argName(i) == "delay"){
@@ -83,21 +84,31 @@ void setup()
         repeats = server.arg(i).toInt();
       }else if(server.argName(i) == "frequency"){
         frequency = server.arg(i).toInt();
+      }else if(server.argName(i) == "tone"){
+        useTone = server.arg(i);
       }
     }
 
-    // Make it go LOW-HIGH-LOW to make sound
+    if(useTone == "true"){
+      for(int i=0; i<repeats; i++){
+        tone(SPEAKER_1, frequency);
+        tone(SPEAKER_2, frequency);
 
-    // Starts LOW
+        delayMicroseconds(delay);
 
-    for(int i=0;i<repeats;i++){
-      tone(SPEAKER_1, frequency);
-      tone(SPEAKER_2, frequency);
+        noTone(SPEAKER_1);
+        noTone(SPEAKER_2);
+      }
+    }else{
+      for(int i=0; i<repeats; i++){
+        digitalWrite(SPEAKER_1, HIGH);
+        digitalWrite(SPEAKER_1, HIGH);
 
-      delayMicroseconds(delay);
+        delayMicroseconds(delay);
 
-      noTone(SPEAKER_1);
-      noTone(SPEAKER_2);
+        digitalWrite(SPEAKER_1, LOW);
+        digitalWrite(SPEAKER_1, LOW);
+      }
     }
 
     String response = "";
