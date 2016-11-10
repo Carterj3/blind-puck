@@ -43,16 +43,16 @@ void setup()
   setupWiFi();
 
   server.on("/version", [](){
-    server.send(200, "application/json", "0.1.1.7");
+    server.send(200, "application/json", "0.1.1.12");
   });
 
   server.on("/adc", [](){
     int average = 0;
-    for(int i=1; i <= 50; i++){
-      average = (average*(i-1))/i + analogRead(ANALOG_PIN)/i;
+    for(int i=1; i <= 1000; i++){
+      average = (average*(i-1))/i + (10*analogRead(ANALOG_PIN))/i;
     }
 
-    server.send(200, "application/json", String(average));
+    server.send(200, "application/json", String(average/10));
   });
 
   server.on("/accel", [](){
@@ -91,23 +91,29 @@ void setup()
 
     if(useTone == "true"){
       for(int i=0; i<repeats; i++){
+
+        delayMicroseconds(delay/2);
+
         tone(SPEAKER_1, frequency);
         tone(SPEAKER_2, frequency);
 
-        delayMicroseconds(delay);
+        delayMicroseconds(delay/2);
 
         noTone(SPEAKER_1);
         noTone(SPEAKER_2);
       }
     }else{
       for(int i=0; i<repeats; i++){
-        digitalWrite(SPEAKER_1, HIGH);
-        digitalWrite(SPEAKER_1, HIGH);
 
-        delayMicroseconds(delay);
+        delayMicroseconds(delay/2);
+
+        digitalWrite(SPEAKER_1, HIGH);
+        digitalWrite(SPEAKER_2, HIGH);
+
+        delayMicroseconds(delay/2);
 
         digitalWrite(SPEAKER_1, LOW);
-        digitalWrite(SPEAKER_1, LOW);
+        digitalWrite(SPEAKER_2, LOW);
       }
     }
 
@@ -115,6 +121,8 @@ void setup()
     response += "{ repeats: "+String(repeats);
     response += ", delay: "+String(delay);
     response += ", frequency: "+String(frequency);
+    response += ", tone: "+String(useTone == "true");
+
     response += "}";
 
 
@@ -158,10 +166,7 @@ void initHardware()
   Serial.begin(115200);
 
   pinMode(SPEAKER_1, OUTPUT);
-  digitalWrite(SPEAKER_1, LOW);
-
   pinMode(SPEAKER_2, OUTPUT);
-  digitalWrite(SPEAKER_2, LOW);
 
   // Don't need to set ANALOG_PIN as input
 
@@ -169,4 +174,13 @@ void initHardware()
   lis.setXEnable(true);
   lis.setYEnable(true);
   lis.setZEnable(true);
+
+
+  digitalWrite(SPEAKER_1, HIGH);
+  digitalWrite(SPEAKER_2, HIGH);
+
+  delay(2);
+
+  digitalWrite(SPEAKER_1, LOW);
+  digitalWrite(SPEAKER_2, LOW);
 }
