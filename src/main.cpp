@@ -1,8 +1,7 @@
 // WiFi
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <WiFiClient.h>
 
 // I2C
 #include <Wire.h>
@@ -12,6 +11,9 @@
 // OTA
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+
+
+#include <WifiHelpers.h>
 
 const char WiFiAPPSK[] = "sparkfun";
 
@@ -31,7 +33,8 @@ LIS331 lis;
 // ADC for battery voltage
 const int ANALOG_PIN = A0;
 
-ESP8266WebServer server(80);
+// ESP8266WebServer server(80);
+WiFiServer server(80);
 
 int16_t x,y,z;
 
@@ -43,106 +46,115 @@ void setup()
   initHardware();
   setupWiFi();
 
-  server.on("/version", [](){
-    server.send(200, "application/json", "0.1.1.13");
-  });
-
-  server.on("/adc", [](){
-    int average = 0;
-    for(int i=1; i <= 1000; i++){
-      average = (average*(i-1))/i + (10*analogRead(ANALOG_PIN))/i;
-    }
-
-    server.send(200, "application/json", String(average/10));
-  });
-
-  server.on("/accel", [](){
-
-    lis.getXValue(&x);
-    lis.getYValue(&y);
-    lis.getZValue(&z);
-
-    String response = "";
-    response += "{ x: "+String(x);
-    response += ", y: "+String(y);
-    response += ", z: "+String(z);
-    response += "}";
-
-    server.send(200, "application/json", response);
-  });
-
-  server.on("/speaker", [](){
-
-    int frequency = 0;
-    int delay = 0;
-    int repeats = 0;
-    String useTone = "true";
-
-    for(int i=0; i<server.args(); i++){
-      if(server.argName(i) == "delay"){
-        delay = server.arg(i).toInt();
-      }else if(server.argName(i) == "repeats"){
-        repeats = server.arg(i).toInt();
-      }else if(server.argName(i) == "frequency"){
-        frequency = server.arg(i).toInt();
-      }else if(server.argName(i) == "tone"){
-        useTone = server.arg(i);
-      }
-    }
-
-    if(useTone == "true"){
-      for(int i=0; i<repeats; i++){
-
-        delayMicroseconds(delay/2);
-
-        tone(SPEAKER_1, frequency);
-        tone(SPEAKER_2, frequency);
-
-        delayMicroseconds(delay/2);
-
-        noTone(SPEAKER_1);
-        noTone(SPEAKER_2);
-      }
-    }else{
-      for(int i=0; i<repeats; i++){
-
-        delayMicroseconds(delay/2);
-
-        digitalWrite(SPEAKER_1, HIGH);
-        digitalWrite(SPEAKER_2, HIGH);
-
-        delayMicroseconds(delay/2);
-
-        digitalWrite(SPEAKER_1, LOW);
-        digitalWrite(SPEAKER_2, LOW);
-      }
-    }
-
-    String response = "";
-    response += "{ repeats: "+String(repeats);
-    response += ", delay: "+String(delay);
-    response += ", frequency: "+String(frequency);
-    response += ", tone: "+String(useTone == "true");
-
-    response += "}";
-
-
-    server.send(200, "application/json", response);
-  });
-
   server.begin();
+
+  //
+  // server.on("/version", [](){
+  //   server.send(200, "application/json", "0.1.1.13");
+  // });
+  //
+  // server.on("/adc", [](){
+  //   int average = 0;
+  //   for(int i=1; i <= 1000; i++){
+  //     // int average(int rollingAverage, int index, int newValue, int scale);
+  //     average = computeRollingAverage(average, i, analogRead(ANALOG_PIN), 10);
+  //     // average = (average*(i-1))/i + (10*analogRead(ANALOG_PIN))/i;
+  //   }
+  //
+  //   server.send(200, "application/json", String(average/10));
+  // });
+  //
+  // server.on("/accel", [](){
+  //
+  //   lis.getXValue(&x);
+  //   lis.getYValue(&y);
+  //   lis.getZValue(&z);
+  //
+  //   String response = "";
+  //   response += "{ x: "+String(x);
+  //   response += ", y: "+String(y);
+  //   response += ", z: "+String(z);
+  //   response += "}";
+  //
+  //   server.send(200, "application/json", response);
+  // });
+  //
+  // server.on("/speaker", [](){
+  //
+  //   int frequency = 0;
+  //   int delay = 0;
+  //   int repeats = 0;
+  //   String useTone = "true";
+  //
+  //   for(int i=0; i<server.args(); i++){
+  //     if(server.argName(i) == "delay"){
+  //       delay = server.arg(i).toInt();
+  //     }else if(server.argName(i) == "repeats"){
+  //       repeats = server.arg(i).toInt();
+  //     }else if(server.argName(i) == "frequency"){
+  //       frequency = server.arg(i).toInt();
+  //     }else if(server.argName(i) == "tone"){
+  //       useTone = server.arg(i);
+  //     }
+  //   }
+  //
+  //   if(useTone == "true"){
+  //     for(int i=0; i<repeats; i++){
+  //
+  //       delayMicroseconds(delay/2);
+  //
+  //       tone(SPEAKER_1, frequency);
+  //       tone(SPEAKER_2, frequency);
+  //
+  //       delayMicroseconds(delay/2);
+  //
+  //       noTone(SPEAKER_1);
+  //       noTone(SPEAKER_2);
+  //     }
+  //   }else{
+  //     for(int i=0; i<repeats; i++){
+  //
+  //       delayMicroseconds(delay/2);
+  //
+  //       digitalWrite(SPEAKER_1, HIGH);
+  //       digitalWrite(SPEAKER_2, HIGH);
+  //
+  //       delayMicroseconds(delay/2);
+  //
+  //       digitalWrite(SPEAKER_1, LOW);
+  //       digitalWrite(SPEAKER_2, LOW);
+  //     }
+  //   }
+  //
+  //   String response = "";
+  //   response += "{ repeats: "+String(repeats);
+  //   response += ", delay: "+String(delay);
+  //   response += ", frequency: "+String(frequency);
+  //   response += ", tone: "+String(useTone == "true");
+  //
+  //   response += "}";
+  //
+  //
+  //   server.send(200, "application/json", response);
+  // });
+  //
+  // server.begin();
 }
 
 void loop()
 {
 
   digitalWrite(BOARD_LED, HIGH);
-  server.handleClient(); // This is a blocking call
-  delay(1);
+  digitalWrite(SPEAKER_1, HIGH);
+  WiFiClient client = server.available();
+  if (client) {
+    handleWiFiClient(client); // NOTE: this is a blocking call but should resolve quickly
+  }
+  delay(13);
 
   digitalWrite(BOARD_LED, LOW);
-  server.handleClient();
-  delay(1);
+  digitalWrite(SPEAKER_1, LOW);
+  delay(13);
 }
 
 void setupWiFi()
@@ -177,10 +189,10 @@ void initHardware()
 
   // Don't need to set ANALOG_PIN as input
 
-  lis.setPowerStatus(LR_POWER_NORM);
-  lis.setXEnable(true);
-  lis.setYEnable(true);
-  lis.setZEnable(true);
+  // lis.setPowerStatus(LR_POWER_NORM);
+  // lis.setXEnable(true);
+  // lis.setYEnable(true);
+  // lis.setZEnable(true);
 
 
   digitalWrite(SPEAKER_1, HIGH);
