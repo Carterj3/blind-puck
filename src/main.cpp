@@ -21,6 +21,8 @@ const char WiFiAPPSK[] = "sparkfun";
 // Pin Definitions //
 /////////////////////
 
+bool TOGGLE = LOW;
+unsigned long lastRead = 0;
 const int BOARD_LED = 5; // 5 -> ESP8266 #5
 
 // GPIO for speaker
@@ -141,20 +143,30 @@ void setup()
   // server.begin();
 }
 
+void toggleBoardLed(){
+  // millis() This number will overflow (go back to zero), after approximately 50 days.
+  if(millis() < lastRead){
+    lastRead = millis();
+  }
+
+  if(millis() > lastRead + 200){
+    TOGGLE = !TOGGLE;
+    digitalWrite(BOARD_LED, TOGGLE);
+    lastRead = millis();
+  }
+}
+
 void loop()
 {
+  toggleBoardLed();
 
-  digitalWrite(BOARD_LED, HIGH);
-  digitalWrite(SPEAKER_1, HIGH);
   WiFiClient client = server.available();
   if (client) {
     handleWiFiClient(client); // NOTE: this is a blocking call but should resolve quickly
   }
-  delay(13);
 
-  digitalWrite(BOARD_LED, LOW);
-  digitalWrite(SPEAKER_1, LOW);
-  delay(13);
+  delay(100);
+
 }
 
 void setupWiFi()

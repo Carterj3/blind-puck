@@ -12,7 +12,25 @@
 0000   38 30 32                                         802
 */
 
+#include "Arduino.h"
+
 #include <WiFiClient.h>
+#include "WiFiRequest.h"
+
+String[] names;
+int namesLength;
+
+String[] values;
+int valuesLength;
+
+
+String getParameter(String name, String defaultValue){
+  for(int i=0;i<)
+}
+
+String[][] getVersion(){
+
+}
 
 void handleWiFiClient(WiFiClient client){
   while(!client.available()){
