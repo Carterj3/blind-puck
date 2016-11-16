@@ -14,50 +14,136 @@
 
 #include "Arduino.h"
 
-#include <WiFiClient.h>
-#include "WiFiRequest.h"
+#include <ESP8266WebServer.h>
+#include <WifiHelpers.h>
+#include <Constants.h>
 
-String[] names;
-int namesLength;
+// I2C, Accel
+#include <Wire.h>
+#include <LIS331.h>
 
-String[] values;
-int valuesLength;
+int16_t x,y,z;
 
-
-String getParameter(String name, String defaultValue){
-  for(int i=0;i<)
+String getVersion(){
+  return "0.1.1.14";
 }
 
-String[][] getVersion(){
-
-}
-
-void handleWiFiClient(WiFiClient client){
-  while(!client.available()){
-    digitalWrite(4, HIGH);
-    delay(1);
-
-    digitalWrite(4 , LOW);
-    delay(1);
+String getAdc(){
+  int average = 0;
+  for(int i=1; i <= 1000; i++){
+    // int average(int rollingAverage, int index, int newValue, int scale);
+    average = computeRollingAverage(average, i, analogRead(ANALOG_PIN), 1000);
+    // average = (average*(i-1))/i + (10*analogRead(ANALOG_PIN))/i;
   }
+  return String(average/1000);
+}
 
-  String request = client.readStringUntil('\r');
-  client.flush();
+String getLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ){
+  String response = "";
+  response += "{ dataAvail: " + String(lis.statusHasDataAvailable());
+  response += ", zAvail: " + String(lis.statusHasZDataAvailable());
+  response += ", yAvail: " + String(lis.statusHasYDataAvailable());
+  response += ", xAvail: " + String(lis.statusHasXDataAvailable());
 
-  String content = "803";
-  String contentLength = String(content.length(), DEC);
+  response += ", zOverun: " + String(lis.statusHasZOverrun());
+  response += ", yOverun: " + String(lis.statusHasYOverrun());
+  response += ", xOverun: " + String(lis.statusHasXOverrun());
+
+  response += ", zEnable: " + String(lis.getZEnable());
+  response += ", yEnable: " + String(lis.getYEnable());
+  response += ", xEnable: " + String(lis.getXEnable());
+
+  response += ", zLis?: " + String(lisX);
+  response += ", yLis?: " + String(lisY);
+  response += ", xLis?: " + String(lisZ);
+
+  response += ", zValue: " + String(lis.getZValue(&z));
+  response += ", yValue: " + String(lis.getYValue(&y));
+  response += ", xValue: " + String(lis.getXValue(&x));
+
+  response += ", z: " + String(z);
+  response += ", y: " + String(y);
+  response += ", x: " + String(x);
+
+  response += ", powerStatus: " + String(lis.getPowerStatus());
+  response += ", dataRate: " + String(lis.getDataRate());
+
+
+  return response;
+}
+
+String getAccel(LIS331 lis){
+  lis.getXValue(&x);
+  lis.getYValue(&y);
+  lis.getZValue(&z);
 
   String response = "";
-  response += "HTTP/1.1 200 OK\r\n";
-  response += "Content-Type: application/json\r\n";
-  response += "Content-length : "+contentLength+"\r\n";
-  response += "Connection: close\r\n";
-  response += "Access-Control-Allow-Origin: *\r\n";
-  response += "\r\n";
-  response += content;
+  response += "{ x: "+String(x);
+  response += ", y: "+String(y);
+  response += ", z: "+String(z);
+  response += "}";
 
-  client.write(response.c_str(), response.length());
+  return response;
 }
+
+String getSpeaker(ESP8266WebServer server){
+  int frequency = 0;
+  int delay = 0;
+  int repeats = 0;
+  String useTone = "true";
+
+  for(int i=0; i<server.args(); i++){
+    if(server.argName(i) == "delay"){
+      delay = server.arg(i).toInt();
+    }else if(server.argName(i) == "repeats"){
+      repeats = server.arg(i).toInt();
+    }else if(server.argName(i) == "frequency"){
+      frequency = server.arg(i).toInt();
+    }else if(server.argName(i) == "tone"){
+      useTone = server.arg(i);
+    }
+  }
+
+  if(useTone == "true"){
+    for(int i=0; i<repeats; i++){
+
+      delayMicroseconds(delay/2);
+
+      tone(SPEAKER_1, frequency);
+      tone(SPEAKER_2, frequency);
+
+      delayMicroseconds(delay/2);
+
+      noTone(SPEAKER_1);
+      noTone(SPEAKER_2);
+    }
+  }else{
+    for(int i=0; i<repeats; i++){
+
+      delayMicroseconds(delay/2);
+
+      digitalWrite(SPEAKER_1, HIGH);
+      digitalWrite(SPEAKER_2, HIGH);
+
+      delayMicroseconds(delay/2);
+
+      digitalWrite(SPEAKER_1, LOW);
+      digitalWrite(SPEAKER_2, LOW);
+    }
+  }
+
+  String response = "";
+  response += "{ repeats: "+String(repeats);
+  response += ", delay: "+String(delay);
+  response += ", frequency: "+String(frequency);
+  response += ", tone: "+String(useTone == "true");
+
+  response += "}";
+
+  return response;
+}
+
+
 
 int computeRollingAverage(int rollingAverage, int index, int newValue, int scale){
   return (rollingAverage*(index-1))/index + (scale*newValue)/index;

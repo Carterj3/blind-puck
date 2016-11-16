@@ -15,18 +15,20 @@ class WiFiRequest
     String getHeaderOrDefault(String name, String defaultValue);
     String getParameterOrDefault(String name, String defaultValue);
     String getBody();
+    String getJsonString();
   private:
     String _method;
     String _uri;
     String _version;
-    String _headerNames[];
-    String _headerValues[];
+    String* _headerNames;
+    String* _headerValues;
     int _headersLength;
 
-    String _parameterNames[];
-    String _parameterValues[];
+    String* _parameterNames;
+    String* _parameterValues;
     int _parametersLength;
-    byte _body[];
+    byte* _body;
+    int _bodyLength;
 };
 
 #endif

@@ -1,9 +1,17 @@
 #ifndef WifiHelpers_h
 #define WifiHelpers_h
 
+// I2C, Accel
+#include <Wire.h>
+#include <LIS331.h>
+
 #include <WiFiClient.h>
 
-void handleWiFiClient(WiFiClient client);
+String getVersion();
+String getAdc();
+String getLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ);
+String getAccel(LIS331 lis);
+String getSpeaker(ESP8266WebServer server);
 
 int computeRollingAverage(int rollingAverage, int index, int newValue, int scale);
 
