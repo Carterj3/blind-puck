@@ -1,10 +1,10 @@
 /* Copyright 2011 David Irvine
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -64,7 +64,7 @@ bool LIS331::writeReg(byte addr, byte val){
 	return false;
   }
 
-  
+
   bool LIS331::statusHasZOverrun(){
 	byte status;
 	if (readReg(LR_STATUS_REG, &status)){
@@ -172,6 +172,18 @@ bool LIS331::writeReg(byte addr, byte val){
 		return false;
 		}
 
+		byte LIS331::getGRange(){
+			byte range;
+			if (readReg(LR_CTRL_REG4, &range)){
+				return range;
+				}
+			return 0;
+		}
+
+		bool LIS331::setGRange(byte range){
+			return writeReg(LR_CTRL_REG4, range);
+		}
+
 
 	byte LIS331::getZEnable(){
 		byte reg;
@@ -221,7 +233,7 @@ bool LIS331::setZEnable(bool state){
 	}
 	return false;
 }
-	
+
 
 
 bool LIS331::setYEnable(bool state){
@@ -235,7 +247,7 @@ bool LIS331::setYEnable(bool state){
 	}
 	return false;
 }
-	
+
 
 
 bool LIS331::setXEnable(bool state){
@@ -264,8 +276,8 @@ bool LIS331::getZValue(int16_t *val){
 }
 
 
-	
-	
+
+
 
 
 bool LIS331::getYValue(int16_t *val){
@@ -282,8 +294,8 @@ bool LIS331::getYValue(int16_t *val){
 }
 
 
-	
-	
+
+
 
 
 bool LIS331::getXValue(int16_t *val){
@@ -298,9 +310,3 @@ bool LIS331::getXValue(int16_t *val){
 	*val=(low|(high << 8));
 	return true;
 }
-
-
-	
-	
-
-

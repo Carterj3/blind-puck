@@ -9,6 +9,7 @@
 
 String getVersion();
 String getAdc();
+String resetLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ);
 String getLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ);
 String getAccel(LIS331 lis);
 String getSpeaker(ESP8266WebServer server);

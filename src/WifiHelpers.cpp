@@ -22,10 +22,8 @@
 #include <Wire.h>
 #include <LIS331.h>
 
-int16_t x,y,z;
-
 String getVersion(){
-  return "0.1.1.14";
+  return "0.1.1.16";
 }
 
 String getAdc(){
@@ -38,7 +36,47 @@ String getAdc(){
   return String(average/1000);
 }
 
+String resetLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ){
+  int16_t x,y,z;
+  String response = "";
+  response += "{ setPower: " + String(lis.setPowerStatus(LR_POWER_NORM));
+
+  response += ", zLis?: " + String(lis.setXEnable(true));
+  response += ", yLis?: " + String(lis.setYEnable(true));
+  response += ", xLis?: " + String(lis.setZEnable(true));
+
+  response += ", dataAvail: " + String(lis.statusHasDataAvailable());
+  response += ", zAvail: " + String(lis.statusHasZDataAvailable());
+  response += ", yAvail: " + String(lis.statusHasYDataAvailable());
+  response += ", xAvail: " + String(lis.statusHasXDataAvailable());
+
+  response += ", zOverun: " + String(lis.statusHasZOverrun());
+  response += ", yOverun: " + String(lis.statusHasYOverrun());
+  response += ", xOverun: " + String(lis.statusHasXOverrun());
+
+  response += ", zEnable: " + String(lis.getZEnable());
+  response += ", yEnable: " + String(lis.getYEnable());
+  response += ", xEnable: " + String(lis.getXEnable());
+
+  response += ", zValue: " + String(lis.getZValue(&z));
+  response += ", yValue: " + String(lis.getYValue(&y));
+  response += ", xValue: " + String(lis.getXValue(&x));
+
+  response += ", z: " + String(z);
+  response += ", y: " + String(y);
+  response += ", x: " + String(x);
+
+  response += ", powerStatus: " + String(lis.getPowerStatus());
+  response += ", dataRate: " + String(lis.getDataRate());
+
+  response += "}";
+
+
+  return response;
+}
+
 String getLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ){
+  int16_t x,y,z;
   String response = "";
   response += "{ dataAvail: " + String(lis.statusHasDataAvailable());
   response += ", zAvail: " + String(lis.statusHasZDataAvailable());
@@ -68,11 +106,15 @@ String getLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ){
   response += ", powerStatus: " + String(lis.getPowerStatus());
   response += ", dataRate: " + String(lis.getDataRate());
 
+  response += "}";
+
 
   return response;
 }
 
 String getAccel(LIS331 lis){
+  int16_t x,y,z;
+
   lis.getXValue(&x);
   lis.getYValue(&y);
   lis.getZValue(&z);
@@ -87,9 +129,9 @@ String getAccel(LIS331 lis){
 }
 
 String getSpeaker(ESP8266WebServer server){
-  int frequency = 0;
-  int delay = 0;
-  int repeats = 0;
+  int frequency = 2200;
+  int delay = 100;
+  int repeats = 10;
   String useTone = "true";
 
   for(int i=0; i<server.args(); i++){

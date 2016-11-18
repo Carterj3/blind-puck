@@ -18,6 +18,8 @@
 ESP8266WebServer server(80);
 LIS331 lis;
 
+int16_t max_x, max_y, max_z;
+
 bool lisX, lisY, lisZ;
 
 bool TOGGLE = LOW;
@@ -25,6 +27,7 @@ unsigned long lastRead = 0;
 
 void initHardware();
 void setupWiFi();
+void toggleBoardLed();
 
 void setup()
 {
@@ -33,8 +36,6 @@ void setup()
 
 
   // HTTP Server
-  server.begin();
-
   server.on("/version", [](){
     server.send(200, "application/json", getVersion());
   });
@@ -47,6 +48,20 @@ void setup()
     server.send(200, "application/json", getAccel(lis));
   });
 
+  server.on("/accelMax", [](){
+    String response = "";
+    response += "{ max_x: "+String(max_x);
+    response += ", max_y: "+String(max_y);
+    response += ", max_z: "+String(max_z);
+    response += "}";
+
+    server.send(200, "application/json", response);
+  });
+
+  server.on("/lisReset", [](){
+    server.send(200, "application/json", resetLis331(lis, lisX, lisY, lisZ));
+  });
+
   server.on("/lis", [](){
     server.send(200, "application/json", getLis331(lis, lisX, lisY, lisZ));
   });
@@ -57,6 +72,11 @@ void setup()
 
   server.begin();
 
+  // TODO: Debug why this doesn't do what I expect.
+/*
+https://github.com/esp8266/Arduino/issues/2415
+
+*/
   // OTA? Server
   // Port defaults to 8266
   // ArduinoOTA.setPort(8266);
@@ -89,6 +109,8 @@ void setup()
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
   ArduinoOTA.begin();
+
+  delay(2000);
 }
 
 void toggleBoardLed(){
@@ -106,10 +128,22 @@ void toggleBoardLed(){
 
 void loop()
 {
+  int16_t x, y, z;
+
   toggleBoardLed();
 
   server.handleClient();
   ArduinoOTA.handle();
+
+  if(lis.statusHasZDataAvailable() && lis.getZValue(&z)){
+    max_z = max(abs(z), abs(max_z)) ;
+  }
+  if(lis.statusHasXDataAvailable() && lis.getXValue(&x)){
+    max_x = max(abs(x), abs(max_x));
+  }
+  if(lis.statusHasYDataAvailable() && lis.getYValue(&y)){
+    max_y = max(abs(y), abs(max_y));
+  }
 
   delay(100);
 
@@ -140,6 +174,7 @@ void setupWiFi()
 void initHardware()
 {
   Serial.begin(115200);
+  Wire.begin();
 
   pinMode(SPEAKER_1, OUTPUT);
   pinMode(SPEAKER_2, OUTPUT);
@@ -151,6 +186,7 @@ void initHardware()
   lisX = lis.setXEnable(true);
   lisY = lis.setYEnable(true);
   lisZ = lis.setZEnable(true);
+  lis.setGRange(0x30); // 24g
 
 
   digitalWrite(SPEAKER_1, HIGH);

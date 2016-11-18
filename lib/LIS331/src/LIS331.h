@@ -1,10 +1,10 @@
 /* Copyright 2011 David Irvine
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -49,10 +49,10 @@
 // Power Modes
 
 #define LR_POWER_OFF B00000000
-#define LR_POWER_NORM B00100000 
-#define LR_POWER_LOW1 B01000000 
-#define LR_POWER_LOW2 B01100000 
-#define LR_POWER_LOW3 B10000000 
+#define LR_POWER_NORM B00100000
+#define LR_POWER_LOW1 B01000000
+#define LR_POWER_LOW2 B01100000
+#define LR_POWER_LOW3 B10000000
 
 // Data Rates
 
@@ -91,6 +91,8 @@ class LIS331
 		bool setPowerStatus(byte status);
 		byte getDataRate();
 		bool setDataRate(byte rate);
+		byte getGRange();
+		bool setGRange(byte range);
 		byte getZEnable();
 		byte getYEnable();
 		byte getXEnable();
