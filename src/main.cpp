@@ -18,9 +18,11 @@
 ESP8266WebServer server(80);
 LIS331 lis;
 
-int16_t max_x, max_y, max_z;
+float last_x, last_y, last_z;
+float max_x, max_y, max_z;
 
 bool lisX, lisY, lisZ;
+bool RUNNING = true;
 
 bool TOGGLE = LOW;
 unsigned long lastRead = 0;
@@ -40,6 +42,16 @@ void setup()
     server.send(200, "application/json", getVersion());
   });
 
+  server.on("/enable", [](){
+    RUNNING = true;
+    server.send(200, "application/json", "true");
+  });
+
+  server.on("/disable", [](){
+    RUNNING = false;
+    server.send(200, "application/json", "false");
+  });
+
   server.on("/adc", [](){
     server.send(200, "application/json", getAdc());
   });
@@ -50,9 +62,14 @@ void setup()
 
   server.on("/accelMax", [](){
     String response = "";
-    response += "{ max_x: "+String(max_x);
-    response += ", max_y: "+String(max_y);
-    response += ", max_z: "+String(max_z);
+    response += "{ max_x: " + String(max_x);
+    response += ", last_x: " + String(last_x);
+    response += ", max_y: " + String(max_y);
+    response += ", last_y: " + String(last_y);
+    response += ", max_z: " + String(max_z);
+    response += ", last_z: " + String(last_z);
+    response += " magnitude_last: " + String(computeMagnitude3d(last_x, last_y, last_z));
+    response += " magnitude_max: " + String(computeMagnitude3d(max_x, max_y, max_z));
     response += "}";
 
     server.send(200, "application/json", response);
@@ -123,26 +140,41 @@ void toggleBoardLed(){
     TOGGLE = !TOGGLE;
     digitalWrite(BOARD_LED, TOGGLE);
     lastRead = millis();
+
+
+    if(RUNNING){
+      float magnitude = computeMagnitude3d(last_x, last_y, last_z);
+
+      tone(SPEAKER_1, 2200);
+      tone(SPEAKER_2, 2200);
+
+      delay(50);
+
+      noTone(SPEAKER_1);
+      noTone(SPEAKER_2);
+    }
   }
 }
 
 void loop()
 {
-  int16_t x, y, z;
-
+  int16_t x,y,z;
   toggleBoardLed();
 
   server.handleClient();
   ArduinoOTA.handle();
 
   if(lis.statusHasZDataAvailable() && lis.getZValue(&z)){
-    max_z = max(abs(z), abs(max_z)) ;
+    last_z = float(z)*G_SCALE;
+    max_z = max(abs(last_z), abs(max_z)) ;
   }
   if(lis.statusHasXDataAvailable() && lis.getXValue(&x)){
-    max_x = max(abs(x), abs(max_x));
+    last_x = float(x)*G_SCALE;
+    max_x = max(abs(last_x), abs(max_x));
   }
   if(lis.statusHasYDataAvailable() && lis.getYValue(&y)){
-    max_y = max(abs(y), abs(max_y));
+    last_y = float(y)*G_SCALE;
+    max_y = max(abs(last_y), abs(max_y));
   }
 
   delay(100);

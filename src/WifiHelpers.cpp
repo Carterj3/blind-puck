@@ -23,15 +23,13 @@
 #include <LIS331.h>
 
 String getVersion(){
-  return "0.1.1.16";
+  return "0.1.1.17";
 }
 
 String getAdc(){
   int average = 0;
   for(int i=1; i <= 1000; i++){
-    // int average(int rollingAverage, int index, int newValue, int scale);
     average = computeRollingAverage(average, i, analogRead(ANALOG_PIN), 1000);
-    // average = (average*(i-1))/i + (10*analogRead(ANALOG_PIN))/i;
   }
   return String(average/1000);
 }
@@ -71,7 +69,6 @@ String resetLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ){
 
   response += "}";
 
-
   return response;
 }
 
@@ -108,7 +105,6 @@ String getLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ){
 
   response += "}";
 
-
   return response;
 }
 
@@ -120,9 +116,9 @@ String getAccel(LIS331 lis){
   lis.getZValue(&z);
 
   String response = "";
-  response += "{ x: "+String(x);
-  response += ", y: "+String(y);
-  response += ", z: "+String(z);
+  response += "{ x (g's): "+String(float(x)*G_SCALE);
+  response += ", y (g's): "+String(float(y)*G_SCALE);
+  response += ", z (g's): "+String(float(z)*G_SCALE);
   response += "}";
 
   return response;
@@ -185,7 +181,9 @@ String getSpeaker(ESP8266WebServer server){
   return response;
 }
 
-
+float computeMagnitude3d(float x, float y, float z){
+   return pow(pow(x,2.0) + pow(y,2.0) + pow(z,2.0), 0.5);
+}
 
 int computeRollingAverage(int rollingAverage, int index, int newValue, int scale){
   return (rollingAverage*(index-1))/index + (scale*newValue)/index;

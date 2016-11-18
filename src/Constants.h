@@ -7,10 +7,12 @@
 
 const char WiFiAPPSK[] = "sparkfun";
 
+
+const float G_SCALE = 0.0007324; //sets g-level (48 fullscale range)/(2^16bits) = SCALE
+
 /////////////////////
 // Pin Definitions //
 /////////////////////
-
 
 const int BOARD_LED = 5; // 5 -> ESP8266 #5
 
