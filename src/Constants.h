@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <LIS331.h>
 
-const char WiFiAPPSK[] = "sparkfun";
+
 
 
 const float G_SCALE = 0.0007324; //sets g-level (48 fullscale range)/(2^16bits) = SCALE

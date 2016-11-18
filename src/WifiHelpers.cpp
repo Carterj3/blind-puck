@@ -23,7 +23,7 @@
 #include <LIS331.h>
 
 String getVersion(){
-  return "0.1.1.17";
+  return "0.1.1.18";
 }
 
 String getAdc(){

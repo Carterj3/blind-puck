@@ -1,5 +1,6 @@
 // WiFi
 #include <ESP8266WebServer.h>
+#include <ESP8266HTTPUpdateServer.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiClient.h>
@@ -12,17 +13,27 @@
 #include <Wire.h>
 #include <LIS331.h>
 
+#include "FS.h"
+
 #include <WifiHelpers.h>
 #include <Constants.h>
 
 ESP8266WebServer server(80);
+ESP8266HTTPUpdateServer httpUpdater;
+
 LIS331 lis;
+
+const char* host = "esp8266-webupdate";
+const char* update_path = "/firmware";
+const char* update_username = "admin";
+const char* update_password = "admin";
+const char WiFiAPPSK[] = "sparkfun";
 
 float last_x, last_y, last_z;
 float max_x, max_y, max_z;
 
 bool lisX, lisY, lisZ;
-bool RUNNING = true;
+bool RUNNING = false;
 
 bool TOGGLE = LOW;
 unsigned long lastRead = 0;
@@ -40,6 +51,21 @@ void setup()
   // HTTP Server
   server.on("/version", [](){
     server.send(200, "application/json", getVersion());
+  });
+
+  server.on("/spiff", [](){
+    FSInfo fs_info;
+    SPIFFS.info(fs_info);
+
+    String response = "";
+    response += "{ totalBytes: " + String(fs_info.totalBytes);
+    response += ", usedBytes : " + String(fs_info.usedBytes);
+    response += ", blockSize : " + String(fs_info.blockSize);
+    response += ", pageSizee : " + String(fs_info.pageSize);
+    response += ", maxOpenFiles: " + String(fs_info.maxOpenFiles);
+    response += ", maxPathLength: " + String(fs_info.maxPathLength);
+
+    server.send(200, "application/json", response);
   });
 
   server.on("/enable", [](){
@@ -87,45 +113,12 @@ void setup()
     server.send(200, "application/json", getSpeaker(server));
   });
 
+  MDNS.begin(host);
+
+  httpUpdater.setup(&server, update_path, update_username, update_password);
+
   server.begin();
-
-  // TODO: Debug why this doesn't do what I expect.
-/*
-https://github.com/esp8266/Arduino/issues/2415
-
-*/
-  // OTA? Server
-  // Port defaults to 8266
-  // ArduinoOTA.setPort(8266);
-
-  // Hostname defaults to esp8266-[ChipID]
-  // ArduinoOTA.setHostname("myesp8266");
-
-  // No authentication by default
-  // ArduinoOTA.setPassword((const char *)"123");
-
-  ArduinoOTA.onStart([]() {
-    Serial.println("Start");
-    digitalWrite(SPEAKER_1, HIGH);
-    digitalWrite(SPEAKER_2, HIGH);
-  });
-  ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
-    digitalWrite(SPEAKER_1, LOW);
-    digitalWrite(SPEAKER_2, LOW);
-  });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-  });
-  ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
-  });
-  ArduinoOTA.begin();
+  MDNS.addService("http", "tcp", 80);
 
   delay(2000);
 }
@@ -192,7 +185,7 @@ void setupWiFi()
   String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
                  String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
   macID.toUpperCase();
-  String AP_NameString = "ESP8266 Thing " + macID;
+  String AP_NameString = "ESP8266Thing" + macID;
 
   char AP_NameChar[AP_NameString.length() + 1];
   memset(AP_NameChar, 0, AP_NameString.length() + 1);
@@ -207,6 +200,7 @@ void initHardware()
 {
   Serial.begin(115200);
   Wire.begin();
+  SPIFFS.begin();
 
   pinMode(SPEAKER_1, OUTPUT);
   pinMode(SPEAKER_2, OUTPUT);

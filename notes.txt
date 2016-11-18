@@ -1,6 +1,17 @@
 https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/discuss
 
 
+Determine loop speed & sound via magnitude ?
+1:
+
+2:
+
+3:
+
+4:
+
+5: 2200 hz
+
 Battery (3.7v)
 
 
