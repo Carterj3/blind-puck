@@ -1,56 +1,145 @@
 // WiFi
 #include <ESP8266WebServer.h>
-#include <ESP8266HTTPUpdateServer.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <WiFiClient.h>
-
-// OTA
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
 
 // I2C, Accel
 #include <Wire.h>
 #include <LIS331.h>
 
-#include "FS.h"
+// SPIFF
+#include <FS.h>
 
 #include <WifiHelpers.h>
 #include <Constants.h>
 
-ESP8266WebServer server(80);
-ESP8266HTTPUpdateServer httpUpdater;
+typedef struct record
+  {
+      float min_magnitude;  // Gravity needed to trigger this record
+      int loop_delay;       // delay(?) for loop()
+      int tone_delay;       // delay between the last time tone() was allowed and next
+      int tone_duration;    // delay(?) between tone and notone
+      int frequency;        // frequency to pass to tone
+  } record;
 
+ESP8266WebServer server(80);
 LIS331 lis;
 
-const char* host = "esp8266-webupdate";
-const char* update_path = "/firmware";
-const char* update_username = "admin";
-const char* update_password = "admin";
 const char WiFiAPPSK[] = "sparkfun";
 
 float last_x, last_y, last_z;
 float max_x, max_y, max_z;
 
-bool lisX, lisY, lisZ;
 bool RUNNING = false;
 
 bool TOGGLE = LOW;
 unsigned long lastRead = 0;
 
+record* records;
+int record_length = 0;
+
 void initHardware();
+void initRecords();
 void setupWiFi();
 void toggleBoardLed();
 
 void setup()
 {
   initHardware();
+  initRecords();
   setupWiFi();
-
 
   // HTTP Server
   server.on("/version", [](){
     server.send(200, "application/json", getVersion());
+  });
+
+  server.on("/reset", [](){
+    server.send(200, "application/json", getVersion());
+    ESP.restart();
+  });
+
+  server.on("/cfg", [](){
+    String response = "";
+
+    response += "[";
+    for(int i=0; i<record_length; i++){
+      response += (i == 0) ? "" : ",";
+
+      response += "{ 'min_magnitude': " + String(records[i].min_magnitude);
+      response += ", 'loop_delay': " + String(records[i].loop_delay);
+      response += ", 'tone_delay': " + String(records[i].tone_delay);
+      response += ", 'tone_duration': " + String(records[i].tone_duration);
+      response += ", 'frequency': " + String(records[i].frequency);
+      response += "}";
+    }
+    response += "]";
+
+    server.send(200, "application/json", response);
+  });
+
+  server.on("/spiffOpen", [](){
+    String path;
+    String mode;
+    String content;
+
+    bool path_valid, mode_valid, content_valid = false;
+
+    String response = "";
+
+    int mode_length = 6;
+    String modes[6] = {"r", "w", "a", "r+", "w+", "a+"};
+
+    for(int i=0; i<server.args(); i++){
+      if(server.argName(i) == "path"){
+        path = server.arg(i);
+        path_valid = true;
+      }else if(server.argName(i) == "mode"){
+        mode = server.arg(i);
+      }else if(server.argName(i) == "content"){
+        content = server.arg(i);
+        content_valid = true;
+      }
+    }
+
+    for(int i=0; i<mode_length; i++){
+      if(mode == modes[i]){
+        mode_valid = true;
+      }
+    }
+
+    if(!path_valid || !mode_valid || !content_valid){
+      response += "{ 'error': Invalid parameters";
+      response += ", 'path': " + path;
+      response += ", 'mode': " + mode;
+      response += ", 'content': " + content;
+      response += "}";
+
+      server.send(200, "application/json", response);
+      return;
+    }
+
+    File f = SPIFFS.open(path, mode.c_str());
+    if (!f) {
+      response += "{ 'error': Invalid file";
+      response += ", 'path': " + path;
+      response += ", 'mode': " + mode;
+      response += ", 'content': " + content;
+      response += "}";
+
+      server.send(200, "application/json", response);
+      return;
+    }
+
+    f.print(content);
+
+    response += "{ 'error': none";
+    response += ", 'path': " + path;
+    response += ", 'mode': " + mode;
+    response += ", 'content': " + content;
+    response += "}";
+
+    server.send(200, "application/json", response);
+    return;
+
   });
 
   server.on("/spiff", [](){
@@ -101,24 +190,11 @@ void setup()
     server.send(200, "application/json", response);
   });
 
-  server.on("/lisReset", [](){
-    server.send(200, "application/json", resetLis331(lis, lisX, lisY, lisZ));
-  });
-
-  server.on("/lis", [](){
-    server.send(200, "application/json", getLis331(lis, lisX, lisY, lisZ));
-  });
-
   server.on("/speaker", [](){
     server.send(200, "application/json", getSpeaker(server));
   });
 
-  MDNS.begin(host);
-
-  httpUpdater.setup(&server, update_path, update_username, update_password);
-
-  server.begin();
-  MDNS.addService("http", "tcp", 80);
+server.begin();
 
   delay(2000);
 }
@@ -138,12 +214,10 @@ void toggleBoardLed(){
     if(RUNNING){
       float magnitude = computeMagnitude3d(last_x, last_y, last_z);
 
-      tone(SPEAKER_1, 2200);
       tone(SPEAKER_2, 2200);
 
       delay(50);
 
-      noTone(SPEAKER_1);
       noTone(SPEAKER_2);
     }
   }
@@ -155,7 +229,6 @@ void loop()
   toggleBoardLed();
 
   server.handleClient();
-  ArduinoOTA.handle();
 
   if(lis.statusHasZDataAvailable() && lis.getZValue(&z)){
     last_z = float(z)*G_SCALE;
@@ -172,6 +245,21 @@ void loop()
 
   delay(100);
 
+}
+
+void initRecords(){
+  File f;
+  if(SPIFFS.exists("/puck.cfg") && (f = SPIFFS.open("/puck.cfg", "r"))){
+    record_length = f.readStringUntil('\n').toInt();
+    records = (record*) malloc(record_length * sizeof(record));
+    for(int i=0; i<record_length; i++){
+      records[i].min_magnitude = f.parseFloat();
+      records[i].loop_delay = f.parseInt();
+      records[i].tone_delay = f.parseInt();
+      records[i].tone_duration = f.parseInt();
+      records[i].frequency = f.parseInt();
+    }
+  }
 }
 
 void setupWiFi()
@@ -202,24 +290,17 @@ void initHardware()
   Wire.begin();
   SPIFFS.begin();
 
-  pinMode(SPEAKER_1, OUTPUT);
   pinMode(SPEAKER_2, OUTPUT);
   pinMode(BOARD_LED, OUTPUT);
 
   // Don't need to set ANALOG_PIN as input
 
   lis.setPowerStatus(LR_POWER_NORM);
-  lisX = lis.setXEnable(true);
-  lisY = lis.setYEnable(true);
-  lisZ = lis.setZEnable(true);
   lis.setGRange(0x30); // 24g
 
-
-  digitalWrite(SPEAKER_1, HIGH);
   digitalWrite(SPEAKER_2, HIGH);
 
   delay(2);
 
-  digitalWrite(SPEAKER_1, LOW);
   digitalWrite(SPEAKER_2, LOW);
 }

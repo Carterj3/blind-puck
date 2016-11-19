@@ -34,80 +34,6 @@ String getAdc(){
   return String(average/1000);
 }
 
-String resetLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ){
-  int16_t x,y,z;
-  String response = "";
-  response += "{ setPower: " + String(lis.setPowerStatus(LR_POWER_NORM));
-
-  response += ", zLis?: " + String(lis.setXEnable(true));
-  response += ", yLis?: " + String(lis.setYEnable(true));
-  response += ", xLis?: " + String(lis.setZEnable(true));
-
-  response += ", dataAvail: " + String(lis.statusHasDataAvailable());
-  response += ", zAvail: " + String(lis.statusHasZDataAvailable());
-  response += ", yAvail: " + String(lis.statusHasYDataAvailable());
-  response += ", xAvail: " + String(lis.statusHasXDataAvailable());
-
-  response += ", zOverun: " + String(lis.statusHasZOverrun());
-  response += ", yOverun: " + String(lis.statusHasYOverrun());
-  response += ", xOverun: " + String(lis.statusHasXOverrun());
-
-  response += ", zEnable: " + String(lis.getZEnable());
-  response += ", yEnable: " + String(lis.getYEnable());
-  response += ", xEnable: " + String(lis.getXEnable());
-
-  response += ", zValue: " + String(lis.getZValue(&z));
-  response += ", yValue: " + String(lis.getYValue(&y));
-  response += ", xValue: " + String(lis.getXValue(&x));
-
-  response += ", z: " + String(z);
-  response += ", y: " + String(y);
-  response += ", x: " + String(x);
-
-  response += ", powerStatus: " + String(lis.getPowerStatus());
-  response += ", dataRate: " + String(lis.getDataRate());
-
-  response += "}";
-
-  return response;
-}
-
-String getLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ){
-  int16_t x,y,z;
-  String response = "";
-  response += "{ dataAvail: " + String(lis.statusHasDataAvailable());
-  response += ", zAvail: " + String(lis.statusHasZDataAvailable());
-  response += ", yAvail: " + String(lis.statusHasYDataAvailable());
-  response += ", xAvail: " + String(lis.statusHasXDataAvailable());
-
-  response += ", zOverun: " + String(lis.statusHasZOverrun());
-  response += ", yOverun: " + String(lis.statusHasYOverrun());
-  response += ", xOverun: " + String(lis.statusHasXOverrun());
-
-  response += ", zEnable: " + String(lis.getZEnable());
-  response += ", yEnable: " + String(lis.getYEnable());
-  response += ", xEnable: " + String(lis.getXEnable());
-
-  response += ", zLis?: " + String(lisX);
-  response += ", yLis?: " + String(lisY);
-  response += ", xLis?: " + String(lisZ);
-
-  response += ", zValue: " + String(lis.getZValue(&z));
-  response += ", yValue: " + String(lis.getYValue(&y));
-  response += ", xValue: " + String(lis.getXValue(&x));
-
-  response += ", z: " + String(z);
-  response += ", y: " + String(y);
-  response += ", x: " + String(x);
-
-  response += ", powerStatus: " + String(lis.getPowerStatus());
-  response += ", dataRate: " + String(lis.getDataRate());
-
-  response += "}";
-
-  return response;
-}
-
 String getAccel(LIS331 lis){
   int16_t x,y,z;
 
@@ -128,7 +54,6 @@ String getSpeaker(ESP8266WebServer server){
   int frequency = 2200;
   int delay = 100;
   int repeats = 10;
-  String useTone = "true";
 
   for(int i=0; i<server.args(); i++){
     if(server.argName(i) == "delay"){
@@ -137,45 +62,25 @@ String getSpeaker(ESP8266WebServer server){
       repeats = server.arg(i).toInt();
     }else if(server.argName(i) == "frequency"){
       frequency = server.arg(i).toInt();
-    }else if(server.argName(i) == "tone"){
-      useTone = server.arg(i);
     }
   }
 
-  if(useTone == "true"){
     for(int i=0; i<repeats; i++){
 
       delayMicroseconds(delay/2);
 
-      tone(SPEAKER_1, frequency);
       tone(SPEAKER_2, frequency);
 
       delayMicroseconds(delay/2);
 
-      noTone(SPEAKER_1);
       noTone(SPEAKER_2);
     }
-  }else{
-    for(int i=0; i<repeats; i++){
 
-      delayMicroseconds(delay/2);
-
-      digitalWrite(SPEAKER_1, HIGH);
-      digitalWrite(SPEAKER_2, HIGH);
-
-      delayMicroseconds(delay/2);
-
-      digitalWrite(SPEAKER_1, LOW);
-      digitalWrite(SPEAKER_2, LOW);
-    }
-  }
 
   String response = "";
   response += "{ repeats: "+String(repeats);
   response += ", delay: "+String(delay);
   response += ", frequency: "+String(frequency);
-  response += ", tone: "+String(useTone == "true");
-
   response += "}";
 
   return response;

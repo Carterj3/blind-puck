@@ -25,7 +25,6 @@ public class AdcVoltageMonitor {
 
 	@Autowired
 	public AdcVoltageMonitor(Sparkfun sparkfun) {
-//		this.sparkfun = sparkfun;
 		this.sparkfun = Feign.builder()//
 				.contract(new SpringMvcContract())//
 				.decoder(new JacksonDecoder())//
