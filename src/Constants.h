@@ -11,14 +11,18 @@ const float G_SCALE = 0.0007324; //sets g-level (48 fullscale range)/(2^16bits) 
 // Pin Definitions //
 /////////////////////
 
-const int BOARD_LED = 5; // 5 -> ESP8266 #5
-
 // GPIO for speaker
-const int SPEAKER_2 = 4; // 4 -> ESP8266 #4
+// #0, #2, #4, #5, #12, #13, #14, #15, #1.  0,2 are used for LEDS. 4,5 are used for I2C
+const int SPEAKER_1 = 15;
+const int SPEAKER_2 = 16;
+const int SPEAKER_3 = 12;
+const int SPEAKER_4 = 13;
+const int SPEAKER_5 = 14;
 
-// ADC for battery voltage
-const int ANALOG_PIN = A0;
 
 
+// GPIO for red
+const int BOARD_LED_RED = 0;
+const int BOARD_LED_BLUE = 2;
 
 #endif

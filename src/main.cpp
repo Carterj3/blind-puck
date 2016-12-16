@@ -1,50 +1,52 @@
 // WiFi
 #include <ESP8266WebServer.h>
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266mDNS.h>
+#include <ESP8266HTTPUpdateServer.h>
 
 // I2C, Accel
 #include <Wire.h>
 #include <LIS331.h>
 
-// SPIFF
-#include <FS.h>
-
 #include <WifiHelpers.h>
 #include <Constants.h>
 
-typedef struct record
-  {
-      float min_magnitude;  // Gravity needed to trigger this record
-      int loop_delay;       // delay(?) for loop()
-      int tone_delay;       // delay between the last time tone() was allowed and next
-      int tone_duration;    // delay(?) between tone and notone
-      int frequency;        // frequency to pass to tone
-  } record;
+ADC_MODE(ADC_VCC); // get VCC on ADC
 
 ESP8266WebServer server(80);
+ESP8266HTTPUpdateServer httpUpdater;
 LIS331 lis;
+
+
+const char* host = "esp8266-webupdate";
+const char* update_path = "/firmware";
+const char* update_username = "admin";
+const char* update_password = "admin";
 
 const char WiFiAPPSK[] = "sparkfun";
 
 float last_x, last_y, last_z;
 float max_x, max_y, max_z;
 
-bool RUNNING = false;
+bool RUNNING = true;
+int COUNTER = 0;
 
 bool TOGGLE = LOW;
 unsigned long lastRead = 0;
 
-record* records;
-int record_length = 0;
-
 void initHardware();
-void initRecords();
 void setupWiFi();
 void toggleBoardLed();
 
 void setup()
 {
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println("Booting Sketch...");
+
+
   initHardware();
-  initRecords();
   setupWiFi();
 
   // HTTP Server
@@ -52,110 +54,10 @@ void setup()
     server.send(200, "application/json", getVersion());
   });
 
-  server.on("/reset", [](){
-    server.send(200, "application/json", getVersion());
-    ESP.restart();
-  });
-
-  server.on("/cfg", [](){
-    String response = "";
-
-    response += "[";
-    for(int i=0; i<record_length; i++){
-      response += (i == 0) ? "" : ",";
-
-      response += "{ 'min_magnitude': " + String(records[i].min_magnitude);
-      response += ", 'loop_delay': " + String(records[i].loop_delay);
-      response += ", 'tone_delay': " + String(records[i].tone_delay);
-      response += ", 'tone_duration': " + String(records[i].tone_duration);
-      response += ", 'frequency': " + String(records[i].frequency);
-      response += "}";
-    }
-    response += "]";
-
-    server.send(200, "application/json", response);
-  });
-
-  server.on("/spiffOpen", [](){
-    String path;
-    String mode;
-    String content;
-
-    bool path_valid, mode_valid, content_valid = false;
-
-    String response = "";
-
-    int mode_length = 6;
-    String modes[6] = {"r", "w", "a", "r+", "w+", "a+"};
-
-    for(int i=0; i<server.args(); i++){
-      if(server.argName(i) == "path"){
-        path = server.arg(i);
-        path_valid = true;
-      }else if(server.argName(i) == "mode"){
-        mode = server.arg(i);
-      }else if(server.argName(i) == "content"){
-        content = server.arg(i);
-        content_valid = true;
-      }
-    }
-
-    for(int i=0; i<mode_length; i++){
-      if(mode == modes[i]){
-        mode_valid = true;
-      }
-    }
-
-    if(!path_valid || !mode_valid || !content_valid){
-      response += "{ 'error': Invalid parameters";
-      response += ", 'path': " + path;
-      response += ", 'mode': " + mode;
-      response += ", 'content': " + content;
-      response += "}";
-
-      server.send(200, "application/json", response);
-      return;
-    }
-
-    File f = SPIFFS.open(path, mode.c_str());
-    if (!f) {
-      response += "{ 'error': Invalid file";
-      response += ", 'path': " + path;
-      response += ", 'mode': " + mode;
-      response += ", 'content': " + content;
-      response += "}";
-
-      server.send(200, "application/json", response);
-      return;
-    }
-
-    f.print(content);
-
-    response += "{ 'error': none";
-    response += ", 'path': " + path;
-    response += ", 'mode': " + mode;
-    response += ", 'content': " + content;
-    response += "}";
-
-    server.send(200, "application/json", response);
-    return;
-
-  });
-
-  server.on("/spiff", [](){
-    FSInfo fs_info;
-    SPIFFS.info(fs_info);
-
-    String response = "";
-    response += "{ totalBytes: " + String(fs_info.totalBytes);
-    response += ", usedBytes : " + String(fs_info.usedBytes);
-    response += ", blockSize : " + String(fs_info.blockSize);
-    response += ", pageSizee : " + String(fs_info.pageSize);
-    response += ", maxOpenFiles: " + String(fs_info.maxOpenFiles);
-    response += ", maxPathLength: " + String(fs_info.maxPathLength);
-
-    server.send(200, "application/json", response);
-  });
+  server.on("/restart", [](){
+     server.send(200, "application/json", String(ESP.getVcc()));
+     ESP.restart();
+ });
 
   server.on("/enable", [](){
     RUNNING = true;
@@ -190,11 +92,14 @@ void setup()
     server.send(200, "application/json", response);
   });
 
-  server.on("/speaker", [](){
-    server.send(200, "application/json", getSpeaker(server));
-  });
+   httpUpdater.setup(&server, update_path, update_username, update_password);
+   server.begin();
 
-server.begin();
+
+  MDNS.begin(host);
+
+   MDNS.addService("http", "tcp", 80);
+   Serial.printf("HTTPUpdateServer ready! Open http://%s.local%s in your browser and login with username '%s' and password '%s'\n", host, update_path, update_username, update_password);
 
   delay(2000);
 }
@@ -205,20 +110,23 @@ void toggleBoardLed(){
     lastRead = millis();
   }
 
-  if(millis() > lastRead + 200){
+  if(millis() > lastRead + 50){
     TOGGLE = !TOGGLE;
-    digitalWrite(BOARD_LED, TOGGLE);
+    digitalWrite(BOARD_LED_RED, TOGGLE);
+    digitalWrite(BOARD_LED_BLUE, RUNNING && TOGGLE);
     lastRead = millis();
 
-
-    if(RUNNING){
+    if(COUNTER < 100){
+      COUNTER += 1;
+    }else if(RUNNING){
       float magnitude = computeMagnitude3d(last_x, last_y, last_z);
 
-      tone(SPEAKER_2, 2200);
+      tone(SPEAKER_1, 300 + COUNTER);
+      COUNTER = 5 + (COUNTER % 20000);
 
       delay(50);
 
-      noTone(SPEAKER_2);
+      noTone(SPEAKER_1);
     }
   }
 }
@@ -247,21 +155,6 @@ void loop()
 
 }
 
-void initRecords(){
-  File f;
-  if(SPIFFS.exists("/puck.cfg") && (f = SPIFFS.open("/puck.cfg", "r"))){
-    record_length = f.readStringUntil('\n').toInt();
-    records = (record*) malloc(record_length * sizeof(record));
-    for(int i=0; i<record_length; i++){
-      records[i].min_magnitude = f.parseFloat();
-      records[i].loop_delay = f.parseInt();
-      records[i].tone_delay = f.parseInt();
-      records[i].tone_duration = f.parseInt();
-      records[i].frequency = f.parseInt();
-    }
-  }
-}
-
 void setupWiFi()
 {
   WiFi.mode(WIFI_AP);
@@ -273,7 +166,7 @@ void setupWiFi()
   String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
                  String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
   macID.toUpperCase();
-  String AP_NameString = "ESP8266Thing" + macID;
+  String AP_NameString = "_Puck_" + macID;
 
   char AP_NameChar[AP_NameString.length() + 1];
   memset(AP_NameChar, 0, AP_NameString.length() + 1);
@@ -286,21 +179,22 @@ void setupWiFi()
 
 void initHardware()
 {
-  Serial.begin(115200);
-  Wire.begin();
-  SPIFFS.begin();
+  //  Wire.begin(int sda, int scl)
+  Wire.begin(4, 5);
 
+  pinMode(SPEAKER_1, OUTPUT);
   pinMode(SPEAKER_2, OUTPUT);
-  pinMode(BOARD_LED, OUTPUT);
+  pinMode(SPEAKER_3, OUTPUT);
+  pinMode(SPEAKER_4, OUTPUT);
+  pinMode(SPEAKER_5, OUTPUT);
+
+
+  pinMode(BOARD_LED_RED, OUTPUT);
+  pinMode(BOARD_LED_BLUE, OUTPUT);
 
   // Don't need to set ANALOG_PIN as input
 
   lis.setPowerStatus(LR_POWER_NORM);
   lis.setGRange(0x30); // 24g
 
-  digitalWrite(SPEAKER_2, HIGH);
-
-  delay(2);
-
-  digitalWrite(SPEAKER_2, LOW);
 }

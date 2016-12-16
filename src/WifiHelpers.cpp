@@ -23,13 +23,13 @@
 #include <LIS331.h>
 
 String getVersion(){
-  return "0.1.1.18";
+  return "0.1.1.20";
 }
 
 String getAdc(){
   int average = 0;
   for(int i=1; i <= 1000; i++){
-    average = computeRollingAverage(average, i, analogRead(ANALOG_PIN), 1000);
+    average = computeRollingAverage(average, i, ESP.getVcc(), 1000);
   }
   return String(average/1000);
 }
@@ -45,42 +45,6 @@ String getAccel(LIS331 lis){
   response += "{ x (g's): "+String(float(x)*G_SCALE);
   response += ", y (g's): "+String(float(y)*G_SCALE);
   response += ", z (g's): "+String(float(z)*G_SCALE);
-  response += "}";
-
-  return response;
-}
-
-String getSpeaker(ESP8266WebServer server){
-  int frequency = 2200;
-  int delay = 100;
-  int repeats = 10;
-
-  for(int i=0; i<server.args(); i++){
-    if(server.argName(i) == "delay"){
-      delay = server.arg(i).toInt();
-    }else if(server.argName(i) == "repeats"){
-      repeats = server.arg(i).toInt();
-    }else if(server.argName(i) == "frequency"){
-      frequency = server.arg(i).toInt();
-    }
-  }
-
-    for(int i=0; i<repeats; i++){
-
-      delayMicroseconds(delay/2);
-
-      tone(SPEAKER_2, frequency);
-
-      delayMicroseconds(delay/2);
-
-      noTone(SPEAKER_2);
-    }
-
-
-  String response = "";
-  response += "{ repeats: "+String(repeats);
-  response += ", delay: "+String(delay);
-  response += ", frequency: "+String(frequency);
   response += "}";
 
   return response;

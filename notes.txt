@@ -1,5 +1,7 @@
 https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/discuss
 
+https://github.com/me-no-dev/ESPAsyncWebServer
+https://github.com/adafruit/ESP8266-Arduino
 
 Determine loop speed & sound via magnitude ?
 1:
@@ -26,6 +28,16 @@ boot device:
     0:
     1: ram
     3: flash
+
+http://www.esp8266.com/viewtopic.php?f=6&t=8386
+    7 SDIO HighSpeed V2 IO Uart1 Booting
+    6 SDIO LowSpeed V1 IO Uart1 Booting
+    5 SDIO HighSpeed V1 IO Uart1 Booting
+    4 SDIO LowSpeed V2 IO Uart1 Booting
+    3 FLASH BOOT
+    2 Jump Boot
+    1 UART Boot
+    0 Remapping
 
 
 https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/all
