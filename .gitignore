@@ -3,3 +3,11 @@
 .gcc-flags.json
 .piolibdeps
 notes.ignored
+
+log.txt
+
+
+*.charging
+*.decharging
+*.ods
+*.csv

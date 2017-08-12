@@ -8,7 +8,7 @@ import org.springframework.cloud.netflix.feign.support.SpringMvcContract;
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
 
-@SpringBootApplication(scanBasePackageClasses = { Sparkfun.class })
+@SpringBootApplication(scanBasePackageClasses = { Sparkfun.class, AdcVoltageMonitor.class })
 @EnableFeignClients
 public class BlindPuckApplication {
 
@@ -25,13 +25,13 @@ public class BlindPuckApplication {
 				.target(Sparkfun.class, "http://192.168.4.1");
 		
 		
-		String content = "";
-		content += "3\n";
-		content += "1.0 100 200 50 2200\n";
-		content += "2.0 100 200 50 2200\n";
-		content += "3.0 100 200 50 2200";
-		
-		sparkfun.configureSpiff("/puck.cfg", "w", content);
+//		String content = "";
+//		content += "3\n";
+//		content += "1.0 100 200 50 2200\n";
+//		content += "2.0 100 200 50 2200\n";
+//		content += "3.0 100 200 50 2200";
+//		
+//		sparkfun.configureSpiff("/puck.cfg", "w", content);
 	}
 
 }

@@ -23,15 +23,43 @@
 #include <LIS331.h>
 
 String getVersion(){
-  return "0.1.1.20";
+  return "0.1.2.1";
+}
+
+String getTimeLeft(){
+  int average = 0;
+  int count = 100;
+  int scale = 100;
+
+  for(int i=1; i <= count; i++){
+    average = computeRollingAverage(average, i, analogRead(A0), scale);
+  }
+
+  average = average / scale;
+
+  // e^((-8361 + 100 *y)/3909)
+  long time_ms = constrain(pow(EULER, (-8361.0 + 100 * average) / 3900.0)
+          , 0, 2147483647L );
+
+  String response = "";
+  response += "{ hours: "   + String(time_ms / (24*60*60*1000));
+  response += ", minutes: " + String(time_ms / (60*60*1000));
+  response += ", seconds: " + String(time_ms / (60*1000));
+  response += "}";
+
+  return response;
 }
 
 String getAdc(){
   int average = 0;
-  for(int i=1; i <= 1000; i++){
-    average = computeRollingAverage(average, i, ESP.getVcc(), 1000);
+  int count = 100;
+  int scale = 100;
+
+  for(int i=1; i <= count; i++){
+    average = computeRollingAverage(average, i, analogRead(A0), scale);
   }
-  return String(average/1000);
+
+  return String(average / scale);
 }
 
 String getAccel(LIS331 lis){

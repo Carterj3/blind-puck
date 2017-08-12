@@ -7,6 +7,7 @@
 
 #include <WiFiClient.h>
 
+String getTimeLeft();
 String getVersion();
 String getAdc();
 String resetLis331(LIS331 lis, bool lisX, bool lisY, bool lisZ);
