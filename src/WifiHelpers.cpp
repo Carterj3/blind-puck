@@ -23,7 +23,7 @@
 #include <LIS331.h>
 
 String getVersion(){
-  return "0.1.2.1";
+  return "0.1.3.0";
 }
 
 String getTimeLeft(){

@@ -12,6 +12,16 @@
 #include <WifiHelpers.h>
 #include <Constants.h>
 
+struct accel_data
+{
+  unsigned long time;
+  float x;
+  float y;
+  float z;
+};
+typedef struct accel_data Accel_data;
+
+
 ESP8266WebServer server(80);
 ESP8266HTTPUpdateServer httpUpdater;
 LIS331 lis;
@@ -23,8 +33,11 @@ const char* update_password = "admin";
 
 const char WiFiAPPSK[] = "sparkfun";
 
-float last_x, last_y, last_z;
-float max_x, max_y, max_z;
+int accel_index = -1;
+bool accel_overrun = false;
+const int accel_max_index = 1*60*5;
+Accel_data accel_array[accel_max_index];
+Accel_data accel_max;
 
 bool RUNNING = false;
 unsigned int pitch = 2200;
@@ -61,14 +74,13 @@ void toggleBoardLed(){
     lastRead = millis();
   }
 
-  if(millis() > lastRead + 500){
+  if(millis() > lastRead + 250){
     TOGGLE = !TOGGLE;
     digitalWrite(BOARD_LED_RED, TOGGLE);
     digitalWrite(BOARD_LED_BLUE, RUNNING && TOGGLE);
     lastRead = millis();
 
     if(RUNNING){
-      float magnitude = computeMagnitude3d(last_x, last_y, last_z);
 
       tone(SPEAKER_1, pitch);
 
@@ -91,17 +103,29 @@ void loop()
     setupServer();
   }
 
-  if(lis.statusHasZDataAvailable() && lis.getZValue(&z)){
-    last_z = float(z)*G_SCALE;
-    max_z = max(abs(last_z), abs(max_z)) ;
-  }
-  if(lis.statusHasXDataAvailable() && lis.getXValue(&x)){
-    last_x = float(x)*G_SCALE;
-    max_x = max(abs(last_x), abs(max_x));
-  }
-  if(lis.statusHasYDataAvailable() && lis.getYValue(&y)){
-    last_y = float(y)*G_SCALE;
-    max_y = max(abs(last_y), abs(max_y));
+  if(   lis.statusHasZDataAvailable()
+    &&  lis.statusHasXDataAvailable()
+    &&  lis.statusHasYDataAvailable()
+
+    &&  lis.getZValue(&z)
+    &&  lis.getXValue(&x)
+    &&  lis.getYValue(&y))
+  {
+    accel_index = (accel_index + 1);
+    if(accel_index >= accel_max_index)
+    {
+      accel_overrun = true;
+      accel_index = 0;
+    }
+
+    accel_array[accel_index].time = millis();
+    accel_array[accel_index].x = float(x)*G_SCALE;
+    accel_array[accel_index].y = float(y)*G_SCALE;
+    accel_array[accel_index].z = float(z)*G_SCALE;
+
+    accel_max.x = max(abs(accel_array[accel_index].x), abs(accel_max.x));
+    accel_max.y = max(abs(accel_array[accel_index].y), abs(accel_max.y));
+    accel_max.z = max(abs(accel_array[accel_index].z), abs(accel_max.z));
   }
 
   delay(100);
@@ -128,9 +152,6 @@ void setupWiFi()
     AP_NameChar[i] = AP_NameString.charAt(i);
 
   WiFi.softAP(AP_NameChar, WiFiAPPSK);
-
-  WiFi.setOutputPower(0);
-  WiFi.begin(AP_NameChar,  WiFiAPPSK);
 }
 
 void setupServer()
@@ -159,9 +180,7 @@ void setupServer()
     String response = "";
 
     if(! server.hasArg("pitch")){
-      response += "{";
-      response += " pitch: ";
-      response += String(pitch);
+      response += "{ \"pitch\": " +  String(pitch);
       response += "}";
 
       server.send(200, "application/json", response);
@@ -172,17 +191,15 @@ void setupServer()
     int newPitch = newPitch_String.toInt();
 
     if(newPitch < 0 || newPitch > 22000){
-      response += "{";
-      response += " newPitch: " + String(pitch);
-      response += " pitch: " + String(newPitch);
+      response += "{ \"newPitch\": " + String(pitch);
+      response += ", \"pitch\": " + String(newPitch);
       response += "}";
 
       server.send(200, "application/json", response);
     }
 
-    response += "{";
-    response += " newPitch: " + String(pitch);
-    response += " oldPitch: " + String(newPitch);
+    response += "{ \"newPitch\": " + String(newPitch);
+    response += ", \"oldPitch\": " + String(pitch);
     response += "}";
 
     pitch = newPitch;
@@ -216,16 +233,40 @@ void setupServer()
     server.send(200, "application/json", getAccel(lis));
   });
 
+  server.on("/accelDump", [](){
+    String response = "[";
+    int lastIndex = accel_overrun ? accel_max_index : accel_index;
+
+    for(int i=0; i < lastIndex; i++){
+      response += "{ \"time\": " + String(accel_array[i].time);;
+      response += ", \"x\": " + String(accel_array[i].x);;
+      response += ", \"y\": " + String(accel_array[i].y);;
+      response += ", \"z\": " + String(accel_array[i].z);;
+
+      if( (i+1) == lastIndex ){
+        response += "}";
+      }else{
+        response += "},";
+      }
+    }
+    response += "]";
+
+    accel_overrun = true;
+    accel_index = -1;
+
+    server.send(200, "application/json", response);
+  });
+
   server.on("/accelMax", [](){
     String response = "";
-    response += "{ max_x: " + String(max_x);
-    response += ", last_x: " + String(last_x);
-    response += ", max_y: " + String(max_y);
-    response += ", last_y: " + String(last_y);
-    response += ", max_z: " + String(max_z);
-    response += ", last_z: " + String(last_z);
-    response += " magnitude_last: " + String(computeMagnitude3d(last_x, last_y, last_z));
-    response += " magnitude_max: " + String(computeMagnitude3d(max_x, max_y, max_z));
+    response += "{ \"max_x\": " + String(accel_max.x);
+    response += ", \"last_x\": " + String(accel_array[accel_index].x);
+    response += ", \"max_y\": " + String(accel_max.y);
+    response += ", \"last_y\": " + String(accel_array[accel_index].y);
+    response += ", \"max_z\": " + String(accel_max.z);
+    response += ", \"last_z\": " + String(accel_array[accel_index].z);
+    response += ", \"magnitude_last\": " + String(computeMagnitude3d(accel_array[accel_index].x, accel_array[accel_index].y, accel_array[accel_index].z));
+    response += ", \"magnitude_max\": " + String(computeMagnitude3d(accel_max.x, accel_max.y, accel_max.z));
     response += "}";
 
     server.send(200, "application/json", response);
