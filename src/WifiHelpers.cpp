@@ -23,7 +23,7 @@
 #include <LIS331.h>
 
 String getVersion(){
-  return "0.1.3.0";
+  return "0.2.3.0";
 }
 
 String getTimeLeft(){
@@ -37,20 +37,33 @@ String getTimeLeft(){
 
   average = average / scale;
 
-  // e^((-8361 + 100 *y)/3909)
-  long time_ms = constrain(pow(EULER, (-8361.0 + 100 * average) / 3900.0)
-          , 0, 2147483647L );
+  int minutesLeft;
+  if( average > DECHARGING_MAX){
+    minutesLeft = DECHARGING_TABLE[0][1];
+  }else if( average < DECHARGING_MIN){
+    int lastIndex = (DECHARGING_MAX - DECHARGING_MIN) / DECHARGING_SCALE;
+    minutesLeft = DECHARGING_TABLE[lastIndex][1];
+  }else{
+    int mod = (average % 5);
+    int ceilingIndex = (DECHARGING_MAX - (average + (5 - mod)));
+    int floorIndex = (DECHARGING_MAX - (average + (0 - mod)));
+
+    int ceilingMinutes = DECHARGING_TABLE[ceilingIndex][1];
+    int floorMinutes= DECHARGING_TABLE[floorIndex][1];
+
+    minutesLeft = ((mod)*ceilingMinutes + (5 - mod)*floorMinutes) / 2;
+  }
 
   String response = "";
-  response += "{ hours: "   + String(time_ms / (24*60*60*1000));
-  response += ", minutes: " + String(time_ms / (60*60*1000));
-  response += ", seconds: " + String(time_ms / (60*1000));
+  response += "{ \"adc\": " + String(average);
+  response += ", \"hours\": " + String(minutesLeft / 60);
+  response += ", \"minutes\": " + String(minutesLeft % 60);
   response += "}";
 
   return response;
 }
 
-String getAdc(){
+int getAdc(){
   int average = 0;
   int count = 100;
   int scale = 100;
@@ -59,23 +72,7 @@ String getAdc(){
     average = computeRollingAverage(average, i, analogRead(A0), scale);
   }
 
-  return String(average / scale);
-}
-
-String getAccel(LIS331 lis){
-  int16_t x,y,z;
-
-  lis.getXValue(&x);
-  lis.getYValue(&y);
-  lis.getZValue(&z);
-
-  String response = "";
-  response += "{ x (g's): "+String(float(x)*G_SCALE);
-  response += ", y (g's): "+String(float(y)*G_SCALE);
-  response += ", z (g's): "+String(float(z)*G_SCALE);
-  response += "}";
-
-  return response;
+  return average / scale;
 }
 
 float computeMagnitude3d(float x, float y, float z){

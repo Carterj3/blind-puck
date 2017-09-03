@@ -10,4 +10,5 @@ log.txt
 *.charging
 *.decharging
 *.ods
+*.ods#
 *.csv

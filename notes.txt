@@ -43,3 +43,12 @@ http://www.esp8266.com/viewtopic.php?f=6&t=8386
 https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/all
 https://cdn.sparkfun.com/datasheets/Wireless/WiFi/ESP8266ThingV1.pdf
 https://cdn.sparkfun.com/datasheets/Wireless/WiFi/SparkFun_ESP8266_Thing.pdf
+
+
+Boost
+- http://www.ebay.com/itm/ENABLE-DC-3-3V-3-7V-5V-6V-to-12V-Boost-Converter-Power-Supply-Step-up-Board-/271366097420
+- http://www.canton-electronics.com/power-converter-modules-c-4/booster-power-modules-c-4_5/output-dc12v-c-4_5_15/dc-33v-37v-5v-6v-to-12v-boost-voltage-regulator-converter-stepup-power-supply-p-56.html
+
+Speaker
+- https://www.amazon.com/Icstation-85dB-Active-Piezo-Electronic/dp/B01LAYWUDO/ref=sr_1_7?s=industrial&ie=UTF8&qid=1502657489&sr=1-7&keywords=12v+speaker
+- https://www.amazon.com/Electric-Buzzer-DC-Physics-Circuits/dp/B0083LWHDQ/ref=pd_sim_328_4?_encoding=UTF8&pd_rd_i=B0083LWHDQ&pd_rd_r=3ZTPDZPVMB2F4B8K5Y46&pd_rd_w=qVaIN&pd_rd_wg=Uhtox&psc=1&refRID=3ZTPDZPVMB2F4B8K5Y46
