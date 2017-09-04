@@ -44,20 +44,39 @@ String getTimeLeft(){
     int lastIndex = (DECHARGING_MAX - DECHARGING_MIN) / DECHARGING_SCALE;
     minutesLeft = DECHARGING_TABLE[lastIndex][1];
   }else{
-    int mod = (average % 5);
-    int ceilingIndex = (DECHARGING_MAX - (average + (5 - mod)));
+    int mod = (average % DECHARGING_SCALE);
+    int ceilingIndex = (DECHARGING_MAX - (average + (DECHARGING_SCALE - mod)));
     int floorIndex = (DECHARGING_MAX - (average + (0 - mod)));
 
     int ceilingMinutes = DECHARGING_TABLE[ceilingIndex][1];
     int floorMinutes= DECHARGING_TABLE[floorIndex][1];
 
-    minutesLeft = ((mod)*ceilingMinutes + (5 - mod)*floorMinutes) / 2;
+    minutesLeft = ((mod)*ceilingMinutes + (DECHARGING_SCALE - mod)*floorMinutes) / 2;
+  }
+
+  int timeLeft;
+  if( average > CHARGING_MAX){
+    timeLeft = CHARGING_TABLE[0][1];
+  }else if( average < CHARGING_MIN){
+    int lastIndex = (CHARGING_MAX - CHARGING_MIN) / CHARGING_SCALE;
+    timeLeft = CHARGING_TABLE[lastIndex][1];
+  }else{
+    int mod = (average % CHARGING_SCALE);
+    int ceilingIndex = (CHARGING_MAX - (average + (CHARGING_SCALE - mod)));
+    int floorIndex = (CHARGING_MAX - (average + (0 - mod)));
+
+    int ceilingMinutes = CHARGING_TABLE[ceilingIndex][1];
+    int floorMinutes= CHARGING_TABLE[floorIndex][1];
+
+    timeLeft = ((mod)*ceilingMinutes + (CHARGING_SCALE - mod)*floorMinutes) / 2;
   }
 
   String response = "";
   response += "{ \"adc\": " + String(average);
-  response += ", \"hours\": " + String(minutesLeft / 60);
-  response += ", \"minutes\": " + String(minutesLeft % 60);
+  response += ", \"d hours\": " + String(minutesLeft / 60);
+  response += ", \"d minutes\": " + String(minutesLeft % 60);
+  response += ", \"c hours\": " + String(timeLeft / 60);
+  response += ", \"c minutes\": " + String(timeLeft % 60);
   response += "}";
 
   return response;

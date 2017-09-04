@@ -106,6 +106,11 @@ void toggleSpeaker(){
     SPEAKER_TOGGLE = SPEAKER_RUNNING && HIGH;
     digitalWrite(SPEAKER_1, SPEAKER_TOGGLE);
   }
+
+  // This case must be last?
+  if(getAdc() > CHARGING_MAX){
+    digitalWrite(SPEAKER_1, HIGH);
+  }
 }
 
 void incrementAccelIndex(){
