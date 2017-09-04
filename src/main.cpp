@@ -41,16 +41,15 @@ const int ACCEL_MAX_INDEX = 1 * 60 * (1000 / ACCEL_RATE_MS);
 Accel_data ACCEL_ARRAY[ACCEL_MAX_INDEX];
 Accel_data ACCEL_MAX;
 
-
 bool LED_TOGGLE = LOW;
-bool LED_LAST_TOGGLED = 0;
-const bool LED_TOGGLE_RATE_MS = 450;
+int LED_LAST_TOGGLED = 0;
+const int LED_TOGGLE_RATE_MS = 150;
 
 bool SPEAKER_RUNNING = false;
 bool SPEAKER_TOGGLE = LOW;
-bool SPEAKER_LAST_TOGGLED = 0;
-const bool SPEAKER_OFF_DURATION_MS = 400;
-const bool SPEAKER_ON_DURATION_MS = 100;
+int SPEAKER_LAST_TOGGLED = 0;
+const int SPEAKER_OFF_DURATION_MS = 700;
+const int SPEAKER_ON_DURATION_MS = 50;
 
 void initHardware();
 void setupWiFi();
@@ -80,11 +79,11 @@ void toggleBoardLed(){
     LED_LAST_TOGGLED = millis();
   }
 
-  if(millis() > LED_LAST_TOGGLED + LED_TOGGLE_RATE_MS){
+  if(millis() > (LED_LAST_TOGGLED + LED_TOGGLE_RATE_MS)){
+    LED_LAST_TOGGLED = millis();
     LED_TOGGLE = !LED_TOGGLE;
     digitalWrite(BOARD_LED_RED, LED_TOGGLE);
     digitalWrite(BOARD_LED_BLUE, SPEAKER_RUNNING && LED_TOGGLE);
-    LED_LAST_TOGGLED = millis();
   }
 }
 
@@ -95,13 +94,13 @@ void toggleSpeaker(){
     digitalWrite(SPEAKER_1, LOW);
   }
 
-  if(SPEAKER_TOGGLE && millis() > SPEAKER_LAST_TOGGLED + SPEAKER_ON_DURATION_MS){
+  if(SPEAKER_TOGGLE && (millis() > (SPEAKER_LAST_TOGGLED + SPEAKER_ON_DURATION_MS))){
     SPEAKER_LAST_TOGGLED = millis();
     SPEAKER_TOGGLE = LOW;
     digitalWrite(SPEAKER_1, SPEAKER_TOGGLE);
   }
 
-  if(millis() > SPEAKER_LAST_TOGGLED + SPEAKER_OFF_DURATION_MS){
+  if(!SPEAKER_TOGGLE && (millis() > (SPEAKER_LAST_TOGGLED + SPEAKER_OFF_DURATION_MS))){
     SPEAKER_LAST_TOGGLED = millis();
     SPEAKER_TOGGLE = SPEAKER_RUNNING && HIGH;
     digitalWrite(SPEAKER_1, SPEAKER_TOGGLE);
