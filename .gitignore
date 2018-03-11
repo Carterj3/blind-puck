@@ -1,3 +1,6 @@
+**/.DS_Store
+.DS_Store
+
 .pioenvs
 .clang_complete
 .gcc-flags.json
@@ -6,9 +9,11 @@ notes.ignored
 
 log.txt
 
-
 *.charging
 *.decharging
 *.ods
 *.ods#
 *.csv
+
+*.bak
+*.kicad_pcb-bak

@@ -1,0 +1,314 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:BlindPuck
+LIBS:BlindPuck-cache
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L DD06AJSA-RESCUE-BlindPuck U2
+U 1 1 5A96E7B0
+P 2400 1600
+F 0 "U2" H 2900 1450 60  0000 C CNN
+F 1 "DD06AJSA" H 2400 2300 60  0000 C CNN
+F 2 "BlindPuck:DD06AJSA" H 2400 1600 60  0001 C CNN
+F 3 "" H 2400 1600 60  0001 C CNN
+	1    2400 1600
+	1    0    0    -1  
+$EndComp
+$Comp
+L MPU-6050-RESCUE-BlindPuck U6
+U 1 1 5A96E8AB
+P 9800 3250
+F 0 "U6" H 10200 2350 60  0000 C CNN
+F 1 "MPU-6050" H 9950 3950 60  0000 C CNN
+F 2 "BlindPuck:MPU6050" H 9800 3250 60  0001 C CNN
+F 3 "" H 9800 3250 60  0001 C CNN
+	1    9800 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L PK-21N30P-TPQ-RESCUE-BlindPuck U1
+U 1 1 5A96E8EF
+P 1400 6400
+F 0 "U1" H 1750 5900 60  0000 C CNN
+F 1 "PK-21N30P-TPQ" H 1450 6500 60  0000 C CNN
+F 2 "BlindPuck:21N30P" H 1400 6400 60  0001 C CNN
+F 3 "" H 1400 6400 60  0001 C CNN
+	1    1400 6400
+	1    0    0    -1  
+$EndComp
+$Comp
+L PK-21N30P-TPQ-RESCUE-BlindPuck U3
+U 1 1 5A96E945
+P 3600 6400
+F 0 "U3" H 3950 5900 60  0000 C CNN
+F 1 "PK-21N30P-TPQ" H 3650 6500 60  0000 C CNN
+F 2 "BlindPuck:21N30P" H 3600 6400 60  0001 C CNN
+F 3 "" H 3600 6400 60  0001 C CNN
+	1    3600 6400
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR01
+U 1 1 5A96EAA1
+P 8400 2750
+F 0 "#PWR01" H 8400 2500 50  0001 C CNN
+F 1 "GND" H 8400 2600 50  0000 C CNN
+F 2 "" H 8400 2750 50  0001 C CNN
+F 3 "" H 8400 2750 50  0001 C CNN
+	1    8400 2750
+	0    1    1    0   
+$EndComp
+$Comp
+L GND #PWR02
+U 1 1 5A96EB1F
+P 2500 4550
+F 0 "#PWR02" H 2500 4300 50  0001 C CNN
+F 1 "GND" H 2500 4400 50  0000 C CNN
+F 2 "" H 2500 4550 50  0001 C CNN
+F 3 "" H 2500 4550 50  0001 C CNN
+	1    2500 4550
+	1    0    0    -1  
+$EndComp
+Text Label 2300 2500 3    60   ~ 0
+GND(12v)
+Text Label 2100 2500 3    60   ~ 0
+12v
+Text Label 2500 5450 1    60   ~ 0
+12v
+Text Label 2500 7350 3    60   ~ 0
+GND(12v)
+Text Label 7300 1700 0    60   ~ 0
+BATTERY
+Text Label 2700 2500 3    60   ~ 0
+BATTERY
+$Comp
+L GND #PWR03
+U 1 1 5A96EEFB
+P 4650 1500
+F 0 "#PWR03" H 4650 1250 50  0001 C CNN
+F 1 "GND" H 4650 1350 50  0000 C CNN
+F 2 "" H 4650 1500 50  0001 C CNN
+F 3 "" H 4650 1500 50  0001 C CNN
+	1    4650 1500
+	0    1    1    0   
+$EndComp
+Text Label 4650 1100 2    60   ~ 0
+3v
+Text Label 8350 2550 2    60   ~ 0
+3v
+Text Label 7400 2900 0    60   ~ 0
+EN(12v)
+Text Label 1400 3750 2    60   ~ 0
+EN(12v)
+NoConn ~ 9200 3350
+NoConn ~ 9200 3550
+NoConn ~ 9200 3750
+NoConn ~ 9200 3950
+NoConn ~ 7000 3100
+NoConn ~ 7000 3300
+NoConn ~ 7000 3500
+NoConn ~ 7000 2700
+NoConn ~ 7000 2500
+NoConn ~ 7000 2300
+NoConn ~ 7000 1900
+NoConn ~ 5500 900 
+NoConn ~ 5500 2900
+NoConn ~ 5500 3100
+NoConn ~ 5500 3300
+NoConn ~ 5500 3500
+NoConn ~ 5500 3700
+$Comp
+L R R1
+U 1 1 5A96F3B1
+P 4250 1700
+F 0 "R1" V 4330 1700 50  0000 C CNN
+F 1 "4M" V 4250 1700 50  0000 C CNN
+F 2 "Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 4180 1700 50  0001 C CNN
+F 3 "" H 4250 1700 50  0001 C CNN
+	1    4250 1700
+	0    1    1    0   
+$EndComp
+$Comp
+L R R2
+U 1 1 5A96F46B
+P 4600 2000
+F 0 "R2" V 4680 2000 50  0000 C CNN
+F 1 "1M" V 4600 2000 50  0000 C CNN
+F 2 "Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 4530 2000 50  0001 C CNN
+F 3 "" H 4600 2000 50  0001 C CNN
+	1    4600 2000
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR04
+U 1 1 5A96F545
+P 4600 2450
+F 0 "#PWR04" H 4600 2200 50  0001 C CNN
+F 1 "GND" H 4600 2300 50  0000 C CNN
+F 2 "" H 4600 2450 50  0001 C CNN
+F 3 "" H 4600 2450 50  0001 C CNN
+	1    4600 2450
+	1    0    0    -1  
+$EndComp
+Text Label 3800 1700 2    60   ~ 0
+BATTERY
+NoConn ~ 5500 3900
+$Comp
+L GND #PWR05
+U 1 1 5A970758
+P 7100 4900
+F 0 "#PWR05" H 7100 4650 50  0001 C CNN
+F 1 "GND" H 7100 4750 50  0000 C CNN
+F 2 "" H 7100 4900 50  0001 C CNN
+F 3 "" H 7100 4900 50  0001 C CNN
+	1    7100 4900
+	-1   0    0    1   
+$EndComp
+Text Label 7350 2100 0    60   ~ 0
+5v
+Text Label 7700 4900 0    60   ~ 0
+5v
+$Comp
+L InductiveCoil U5
+U 1 1 5A970AC3
+P 7400 5450
+F 0 "U5" H 7900 5400 60  0000 C CNN
+F 1 "InductiveCoil" H 7400 6050 60  0000 C CNN
+F 2 "BlindPuck:InductiveCoils(Rx)" H 7400 5450 60  0001 C CNN
+F 3 "" H 7400 5450 60  0001 C CNN
+	1    7400 5450
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	9200 2950 8250 2950
+Wire Wire Line
+	8250 2950 8250 3700
+Wire Wire Line
+	8250 3700 7000 3700
+Wire Wire Line
+	7000 3900 8450 3900
+Wire Wire Line
+	8450 3900 8450 3150
+Wire Wire Line
+	8450 3150 9200 3150
+Wire Wire Line
+	2500 2000 2500 3550
+Wire Wire Line
+	2300 2000 2300 2500
+Wire Wire Line
+	2100 2000 2100 2500
+Wire Wire Line
+	1400 5600 1400 5700
+Wire Wire Line
+	1400 5600 3600 5600
+Wire Wire Line
+	2500 5600 2500 5450
+Wire Wire Line
+	3600 5600 3600 5700
+Connection ~ 2500 5600
+Wire Wire Line
+	1400 7100 1400 7150
+Wire Wire Line
+	1400 7150 3600 7150
+Wire Wire Line
+	2500 7150 2500 7350
+Wire Wire Line
+	3600 7150 3600 7100
+Connection ~ 2500 7150
+Wire Wire Line
+	2500 3950 2500 4550
+Wire Wire Line
+	7000 1700 7300 1700
+Wire Wire Line
+	2700 2500 2700 2000
+Wire Wire Line
+	4650 1500 5500 1500
+Wire Wire Line
+	8400 2750 9200 2750
+Wire Wire Line
+	5500 1100 4650 1100
+Wire Wire Line
+	8350 2550 9200 2550
+Wire Wire Line
+	7400 2900 7000 2900
+Wire Wire Line
+	1400 3750 2200 3750
+Wire Wire Line
+	3800 1700 4100 1700
+Wire Wire Line
+	4400 1700 5500 1700
+Wire Wire Line
+	4600 1700 4600 1850
+Connection ~ 4600 1700
+Wire Wire Line
+	4600 2150 4600 2450
+Wire Wire Line
+	7350 2100 7000 2100
+Wire Wire Line
+	7100 4900 7100 5150
+Wire Wire Line
+	7700 4900 7700 5150
+$Comp
+L Q_PMOS_GDS Q1
+U 1 1 5A97569B
+P 2400 3750
+F 0 "Q1" H 2600 3800 50  0000 L CNN
+F 1 "FQP30N06" H 2600 3700 50  0000 L CNN
+F 2 "TO_SOT_Packages_THT:TO-220-3_Vertical" H 2600 3850 50  0001 C CNN
+F 3 "" H 2400 3750 50  0001 C CNN
+	1    2400 3750
+	1    0    0    -1  
+$EndComp
+$Comp
+L FeatherHuzzah U4
+U 1 1 5A9761C2
+P 6250 2150
+F 0 "U4" H 6650 200 60  0000 C CNN
+F 1 "FeatherHuzzah" H 6350 3450 60  0000 C CNN
+F 2 "BlindPuck:Feather" H 6250 2150 60  0001 C CNN
+F 3 "" H 6250 2150 60  0001 C CNN
+	1    6250 2150
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
