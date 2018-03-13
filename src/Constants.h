@@ -5,7 +5,7 @@
 #include "Arduino.h"
 
 const int SPEAKER_OFF_DURATION_MS = 700;
-const int SPEAKER_ON_DURATION_MS = 50;
+const int SPEAKER_ON_DURATION_MS = 25;
 
 /////////////////////
 // Pin Definitions //

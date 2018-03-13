@@ -17,3 +17,6 @@ log.txt
 
 *.bak
 *.kicad_pcb-bak
+
+
+lib/*/**
