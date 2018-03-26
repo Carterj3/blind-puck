@@ -9,6 +9,15 @@ https://crossicehockey.com/science-behind-slap-shot/
 - the recreational player is only able to maintain a blade-puck contact time of just 27ms.
 -- So a 80 mph slapshot would require a +/- 100 g's accelerometer
 
+
+Future ideas
+- 3dof accel IIS3DHHCTR (SPI, I2C)
+-- https://www.mouser.com/ProductDetail/STMicroelectronics/IIS3DHHCTR?qs=sGAEpiMZZMvwE4h8i4g3ciyD89pKII0LMzYN58wyaMOzgHb2b0RfDw%3d%3d
+- 3dof gyro L3GD20HTR (SPI, I2C)
+-- https://www.mouser.com/ProductDetail/STMicroelectronics/L3GD20HTR?qs=sGAEpiMZZMvjdJbiImeM3ljEqxO6GPNE
+- 3dof mag LIS2MDL (SPI, I2C)
+-- https://www.mouser.com/ProductDetail/STMicroelectronics/LIS2MDLTR?qs=5aG0NVq1C4wS0n6b5NiBNQ%3D%3D
+
 reset causes:
     0:
     1: normal boot

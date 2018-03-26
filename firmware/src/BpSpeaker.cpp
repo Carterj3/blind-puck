@@ -18,13 +18,16 @@ BpSpeaker::BpSpeaker(int* pins, int length, int onDurationMs, int offDurationMs)
   {
     pinMode(pins_[i], OUTPUT);
   }
+
+  togglePins(false);
 }
 
 void BpSpeaker::start()
 {
   enabled_ = true;
 
-  nextOffTimeMs_ = millis() + onDurationMs_;
+  lastTime_ = millis();
+  nextOffTimeMs_ = lastTime_ + onDurationMs_;
   nextOnTimeMs_ = nextOffTimeMs_ + offDurationMs_;
 
   togglePins(true);
@@ -38,9 +41,11 @@ void BpSpeaker::stop()
 }
 
 void BpSpeaker::togglePins(bool on){
+
   for(int i=0;i<length_;i++)
   {
-    digitalWrite(pins_[i], on);
+    Serial.printf("BpSpeaker::togglePins(%d,%s)\n",pins_[i], on?"HIGH":"LOW");
+    digitalWrite(pins_[i], on?HIGH:LOW);
   }
 }
 
@@ -58,6 +63,8 @@ void BpSpeaker::tick()
     nextOffTimeMs_ = millis() + onDurationMs_;
     nextOnTimeMs_ = nextOffTimeMs_ + offDurationMs_;
   }
+
+  lastTime_ = millis();
 
   if(millis() > onDurationMs_)
   {
