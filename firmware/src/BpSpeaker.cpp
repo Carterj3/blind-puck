@@ -44,7 +44,6 @@ void BpSpeaker::togglePins(bool on){
 
   for(int i=0;i<length_;i++)
   {
-    Serial.printf("BpSpeaker::togglePins(%d,%s)\n",pins_[i], on?"HIGH":"LOW");
     digitalWrite(pins_[i], on?HIGH:LOW);
   }
 }
@@ -66,11 +65,11 @@ void BpSpeaker::tick()
 
   lastTime_ = millis();
 
-  if(millis() > onDurationMs_)
+  if(millis() > nextOnTimeMs_)
   {
     togglePins(true);
     nextOnTimeMs_ = nextOffTimeMs_ + offDurationMs_;
-  }else if(millis() > offDurationMs_)
+  }else if(millis() > nextOffTimeMs_)
   {
     togglePins(false);
     nextOffTimeMs_ = nextOnTimeMs_ + onDurationMs_;

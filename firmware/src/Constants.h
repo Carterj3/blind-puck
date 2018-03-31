@@ -4,8 +4,8 @@
 #include "Wire.h"
 #include "Arduino.h"
 
-const int SPEAKER_OFF_DURATION_MS = 700;
-const int SPEAKER_ON_DURATION_MS = 25;
+const int SPEAKER_OFF_DURATION_MS = 1200;
+const int SPEAKER_ON_DURATION_MS = 75;
 
 /////////////////////
 // Pin Definitions //

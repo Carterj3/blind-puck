@@ -56,17 +56,6 @@ F 3 "" H 2400 1600 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L MPU-6050-RESCUE-BlindPuck U6
-U 1 1 5A96E8AB
-P 9800 3250
-F 0 "U6" H 10200 2350 60  0000 C CNN
-F 1 "MPU-6050" H 9950 3950 60  0000 C CNN
-F 2 "BlindPuck:MPU6050" H 9800 3250 60  0001 C CNN
-F 3 "" H 9800 3250 60  0001 C CNN
-	1    9800 3250
-	1    0    0    -1  
-$EndComp
-$Comp
 L PK-21N30P-TPQ-RESCUE-BlindPuck U1
 U 1 1 5A96E8EF
 P 1400 6400
@@ -87,17 +76,6 @@ F 2 "BlindPuck:21N30P" H 3600 6400 60  0001 C CNN
 F 3 "" H 3600 6400 60  0001 C CNN
 	1    3600 6400
 	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR01
-U 1 1 5A96EAA1
-P 8400 2750
-F 0 "#PWR01" H 8400 2500 50  0001 C CNN
-F 1 "GND" H 8400 2600 50  0000 C CNN
-F 2 "" H 8400 2750 50  0001 C CNN
-F 3 "" H 8400 2750 50  0001 C CNN
-	1    8400 2750
-	0    1    1    0   
 $EndComp
 $Comp
 L GND #PWR02
@@ -135,16 +113,10 @@ F 3 "" H 4650 1500 50  0001 C CNN
 $EndComp
 Text Label 4650 1100 2    60   ~ 0
 3v
-Text Label 8350 2550 2    60   ~ 0
-3v
 Text Label 7400 2900 0    60   ~ 0
 EN(12v)
 Text Label 1050 3600 2    60   ~ 0
 EN(12v)
-NoConn ~ 9200 3350
-NoConn ~ 9200 3550
-NoConn ~ 9200 3750
-NoConn ~ 9200 3950
 NoConn ~ 7000 3100
 NoConn ~ 7000 3300
 NoConn ~ 7000 3500
@@ -197,41 +169,29 @@ NoConn ~ 5500 3900
 $Comp
 L GND #PWR05
 U 1 1 5A970758
-P 7100 4900
-F 0 "#PWR05" H 7100 4650 50  0001 C CNN
-F 1 "GND" H 7100 4750 50  0000 C CNN
-F 2 "" H 7100 4900 50  0001 C CNN
-F 3 "" H 7100 4900 50  0001 C CNN
-	1    7100 4900
+P 3400 3950
+F 0 "#PWR05" H 3400 3700 50  0001 C CNN
+F 1 "GND" H 3400 3800 50  0000 C CNN
+F 2 "" H 3400 3950 50  0001 C CNN
+F 3 "" H 3400 3950 50  0001 C CNN
+	1    3400 3950
 	-1   0    0    1   
 $EndComp
 Text Label 7350 2100 0    60   ~ 0
 5v
-Text Label 7700 4900 0    60   ~ 0
+Text Label 4000 3950 0    60   ~ 0
 5v
 $Comp
 L InductiveCoil U5
 U 1 1 5A970AC3
-P 7400 5450
-F 0 "U5" H 7900 5400 60  0000 C CNN
-F 1 "InductiveCoil" H 7400 6050 60  0000 C CNN
-F 2 "BlindPuck:InductiveCoils(Rx)" H 7400 5450 60  0001 C CNN
-F 3 "" H 7400 5450 60  0001 C CNN
-	1    7400 5450
+P 3700 4500
+F 0 "U5" H 4200 4450 60  0000 C CNN
+F 1 "InductiveCoil" H 3700 5100 60  0000 C CNN
+F 2 "BlindPuck:InductiveCoils(Rx)" H 3700 4500 60  0001 C CNN
+F 3 "" H 3700 4500 60  0001 C CNN
+	1    3700 4500
 	-1   0    0    1   
 $EndComp
-Wire Wire Line
-	9200 2950 8250 2950
-Wire Wire Line
-	8250 2950 8250 3700
-Wire Wire Line
-	8250 3700 7000 3700
-Wire Wire Line
-	7000 3900 8450 3900
-Wire Wire Line
-	8450 3900 8450 3150
-Wire Wire Line
-	8450 3150 9200 3150
 Wire Wire Line
 	2100 2000 2100 2500
 Wire Wire Line
@@ -259,11 +219,7 @@ Wire Wire Line
 Wire Wire Line
 	4650 1500 5500 1500
 Wire Wire Line
-	8400 2750 9200 2750
-Wire Wire Line
 	5500 1100 4650 1100
-Wire Wire Line
-	8350 2550 9200 2550
 Wire Wire Line
 	7400 2900 7000 2900
 Wire Wire Line
@@ -278,9 +234,9 @@ Wire Wire Line
 Wire Wire Line
 	7350 2100 7000 2100
 Wire Wire Line
-	7100 4900 7100 5150
+	3400 3950 3400 4200
 Wire Wire Line
-	7700 4900 7700 5150
+	4000 3950 4000 4200
 $Comp
 L Q_PMOS_GDS Q1
 U 1 1 5A97569B
@@ -359,6 +315,4 @@ Wire Wire Line
 	2850 2950 2300 2950
 Wire Wire Line
 	2300 2950 2300 2000
-Text Notes 4100 4650 0    60   ~ 0
-Schematic does not match PCB anymore
 $EndSCHEMATC

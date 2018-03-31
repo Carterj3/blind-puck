@@ -167,7 +167,11 @@ void setupServer()
 
 void initHardware()
 {
+  Serial.begin(115200);
+
   pinMode(A0, INPUT);
 
   pinMode(BOARD_LED_RED, OUTPUT);
+
+  Serial.printf("Hardware init\n");
 }
